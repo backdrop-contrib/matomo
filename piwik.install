@@ -1,0 +1,137 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Installation file for Piwik - Web analytics module.
+ */
+
+function piwik_install() {
+  // Remove tracking from all administrative pages, see http://drupal.org/node/34970.
+  variable_set('piwik_visibility', 0);
+  $pages = array(
+    'admin',
+    'admin/*',
+    'user/*/*',
+    'node/add*',
+    'node/*/*',
+  );
+  variable_set('piwik_pages', implode("\n", $pages));
+}
+
+function piwik_uninstall() {
+  variable_del('piwik_cache');
+  variable_del('piwik_custom');
+  variable_del('piwik_codesnippet_before');
+  variable_del('piwik_codesnippet_after');
+  variable_del('piwik_js_scope');
+  variable_del('piwik_last_cache');
+  variable_del('piwik_pages');
+  variable_del('piwik_roles');
+  variable_del('piwik_site_id');
+  variable_del('piwik_site_search');
+  variable_del('piwik_track'); // interrims solution
+  variable_del('piwik_trackfiles_extensions');
+  variable_del('piwik_translation_set');
+  variable_del('piwik_url_http');
+  variable_del('piwik_url_https');
+  variable_del('piwik_visibility');
+}
+
+/**
+ * Remove cache directory if module is disabled (or uninstalled).
+ */
+function piwik_disable() {
+  piwik_clear_js_cache();
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function piwik_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  switch ($phase) {
+    case 'runtime' :
+      // Module cannot validate piwik URL without external HTTP requests.
+      if (variable_get('drupal_http_request_fails', TRUE) && !system_check_http_request()) {
+        $requirements['http requests'] = array(
+          'title' => $t('HTTP request status'),
+          'value' => $t('Fails'),
+          'severity' => REQUIREMENT_ERROR,
+          'description' => $t('Your system or network configuration does not allow Drupal to access web pages, resulting in reduced functionality. This could be due to your webserver configuration or PHP settings, and should be resolved in order to download information about available updates, fetch aggregator feeds, sign in via OpenID, or use other network-dependent services.'),
+        );
+      }
+
+      // Raise warning if Piwik user account has not been set yet.
+      if (!preg_match('/^\d{1,}$/', variable_get('piwik_site_id', ''))) {
+        $requirements['piwik'] = array(
+          'title' => $t('Piwik module'),
+          'description' => $t('Piwik module has not been configured yet. Please configure its settings from the <a href="@url">Piwik settings page</a>.', array('@url' => url('admin/config/system/piwik'))),
+          'severity' => REQUIREMENT_ERROR,
+          'value' => $t('Not configured'),
+        );
+      }
+      break;
+  }
+  return $requirements;
+}
+
+
+/**
+ * Change visibility setting for paths.
+ */
+function piwik_update_6000() {
+  // Orginal pages setting.
+  $pages = array(
+    'admin*',
+    'user*',
+    'node/add*',
+    'node/*/*',
+  );
+
+  $diff = array_diff($pages, preg_split('/(\r\n?|\n)/', variable_get('piwik_pages', implode("\n", $pages))));
+  if (empty($diff)) {
+    // No diff to original settings found. Update with new settings.
+    $pages = array(
+      'admin',
+      'admin/*',
+      'user/*/*',
+      'node/add*',
+      'node/*/*',
+    );
+    variable_set('piwik_pages', implode("\n", $pages));
+    return t('Path visibility filter setting changed from "admin*" to "admin, admin/*" and "user*" changed to "user/*/*".');
+  }
+  else {
+    return t('Custom path visibility filter setting found. Update skipped!');
+  }
+}
+
+/**
+ * Upgrade custom javascript settings.
+ */
+function piwik_update_6001() {
+  variable_set('piwik_codesnippet_before', variable_get('piwik_codesnippet', ''));
+  variable_del('piwik_codesnippet');
+  return t('Upgraded custom javascript codesnippet setting.');
+}
+
+/**
+ * Remove obsolte token auth.
+ */
+function piwik_update_6002() {
+  variable_del('piwik_auth');
+  return t('The global token_auth setting has been deleted. Users need to configure their personal token_auth.');
+}
+
+/**
+ * Update list of default extensions
+ */
+function piwik_update_6003() {
+  if (variable_get('piwik_trackfiles_extensions', '') == '7z|aac|avi|csv|doc|exe|flv|gif|gz|jpe?g|js|mp(3|4|e?g)|mov|pdf|phps|png|ppt|rar|sit|tar|torrent|txt|wma|wmv|xls|xml|zip') {
+    variable_set('piwik_trackfiles_extensions', '7z|aac|arc|arj|asf|asx|avi|bin|csv|doc|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls|xml|z|zip');
+  }
+  return t('The default extensions for download tracking have been updated to piwik defaults.');
+}

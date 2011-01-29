@@ -1,0 +1,420 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Drupal Module: Piwik
+ * Adds the required Javascript to the bottom of all your Drupal pages
+ * to allow tracking by the Piwik statistics package.
+ *
+ * @author: Alexander Hass <http://drupal.org/user/85918>
+ */
+
+define('PK_TRACKFILES_EXTENSIONS', '7z|aac|arc|arj|asf|asx|avi|bin|csv|doc|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls|xml|z|zip');
+
+/**
+ * Implements hook_help().
+ */
+function piwik_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/system/piwik':
+      return t('<a href="@pk_url">Piwik - Web analytics</a> is an open source (GPL license) web analytics software. It gives interesting reports on your website visitors, your popular pages, the search engines keywords they used, the language they speak... and so much more. Piwik aims to be an open source alternative to Google Analytics.', array('@pk_url' => 'http://www.piwik.org/'));
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function piwik_permission() {
+  return array(
+    'administer piwik' => array(
+      'title' => t('Administer Piwik'),
+      'description' => t('Perform maintenance tasks for Piwik.'),
+    ),
+    'opt-in or out of tracking' => array(
+      'title' => t('Opt-in or out of tracking'),
+      'description' => t('Allow users to decide if tracking code will be added to pages or not.'),
+    ),
+    'use PHP for tracking visibility' => array(
+      'title' => t('Use PHP for tracking visibility'),
+      'description' => t('Enter PHP code in the field for tracking visibility settings. %warning', array('%warning' => t('Warning: Give to trusted roles only; this permission has security implications.'))),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function piwik_menu() {
+  $items['admin/config/system/piwik'] = array(
+    'title' => 'Piwik',
+    'description' => 'Configure the settings used to generate your Piwik tracking code.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('piwik_admin_settings_form'),
+    'access arguments' => array('administer piwik'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'piwik.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_page_alter() to insert JavaScript to the appropriate scope/region of the page.
+ */
+function piwik_page_alter(&$page) {
+  global $user;
+
+  $id = variable_get('piwik_site_id', '');
+
+  // Get page status code for visibility filtering.
+  $status = drupal_get_http_header('Status');
+  $trackable_status_codes = array(
+    '403 Forbidden',
+    '404 Not Found',
+  );
+
+  // 1. Check if the piwik account number has a value.
+  // 2. Track page views based on visibility value.
+  // 3. Check if we should track the currently active user's role.
+  if (!empty($id) && (_piwik_visibility_pages() || in_array($status, $trackable_status_codes)) && _piwik_visibility_user($user)) {
+
+    $url_http = variable_get('piwik_url_http', '');
+    $url_https = variable_get('piwik_url_https', '');
+    $scope = variable_get('piwik_js_scope', 'footer');
+
+    // Should a local cached copy of the tracking code be used?
+    $piwik = 'var pkBaseURL = (("https:" == document.location.protocol) ? "'. check_url($url_https) .'" : "'. check_url($url_http) .'");';
+    if (variable_get('piwik_cache', 0) && $url = _piwik_cache($url_http .'/piwik.js')) {
+      drupal_add_js($url, array('scope' => $scope));
+    }
+    else {
+      $piwik .= 'document.write(unescape("%3Cscript src=\'" + pkBaseURL + "/piwik.js\' type=\'text/javascript\'%3E%3C/script%3E"));';
+    }
+    drupal_add_js($piwik, array('scope'=> $scope, 'type' => 'inline'));
+
+    $piwik_vars = array();
+    $url_custom = '';
+
+    // Site search tracking support.
+    if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
+      $url_custom = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys)))));
+    }
+
+    // If this node is a translation of another node, pass the original
+    // node instead.
+    if (module_exists('translation') && variable_get('piwik_translation_set', 0)) {
+      // Check we have a node object, it supports translation, and its
+      // translated node ID (tnid) doesn't match its own node ID.
+      $node = menu_get_object();
+      if ($node && translation_supported_type($node->type) && isset($node->tnid) && ($node->tnid != $node->nid)) {
+        $source_node = node_load($node->tnid);
+        $languages = language_list();
+        $url_custom = drupal_json_encode(url('node/'. $source_node->nid, array('language' => $languages[$source_node->language])));
+      }
+    }
+
+    // Track access denied (403) and file not found (404) pages.
+    if ($status == '403 Forbidden') {
+      $url_custom = '"403/URL = " + encodeURIComponent(document.location.pathname + document.location.search) + "/From=" + encodeURIComponent(document.referrer)';
+    }
+    elseif ($status == '404 Not Found') {
+      $url_custom = '"404/URL = " + encodeURIComponent(document.location.pathname + document.location.search) + "/From=" + encodeURIComponent(document.referrer)';
+    }
+
+    // Add any custom code snippets if specified.
+    $codesnippet_before = variable_get('piwik_codesnippet_before', '');
+    $codesnippet_after = variable_get('piwik_codesnippet_after', '');
+
+    // Build settings code. See http://piwik.org/docs/javascript-tracking/
+    $script = 'try {';
+    $script .= 'var piwikTracker = Piwik.getTracker(pkBaseURL + "/piwik.php", '. drupal_json_encode(variable_get('piwik_site_id', '')) .');';
+
+    if (!empty($url_custom)) {
+      $script .= 'piwikTracker.setDocumentTitle('. $url_custom .');';
+    }
+
+    if ((variable_get('piwik_track', 1)) && !(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS) == PK_TRACKFILES_EXTENSIONS)) {
+      $script .= 'piwikTracker.setDownloadExtensions('. drupal_json_encode(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS)) .');';
+    }
+
+    // Add custom variables.
+    if (!empty($piwik_vars)) {
+      $piwik_vars_fields = array();
+      foreach ($piwik_vars as $name => $value) {
+        $piwik_vars_fields[] = drupal_json_encode($name) .':'. drupal_json_encode($value);
+      }
+      if (count($piwik_vars_fields) > 0) {
+        $script .= 'piwikTracker.setCustomVars({ '. implode(', ', $piwik_vars_fields) .' });';
+      }
+    }
+    if (!empty($codesnippet_before)) {
+      $script .= $codesnippet_before;
+    }
+    $script .= 'piwikTracker.trackPageView();';
+
+    // Add link tracking.
+    if (variable_get('piwik_track', 1)) {
+      $script .= 'piwikTracker.enableLinkTracking();';
+    }
+    if (!empty($codesnippet_after)) {
+      $script .= $codesnippet_after;
+    }
+    $script .= '} catch(err) {}';
+
+    // Add tracker code to scope.
+    drupal_add_js($script, array('scope'=> $scope, 'type' => 'inline'));
+  }
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ *
+ * Allow users to decide if tracking code will be added to pages or not.
+ */
+function piwik_form_user_profile_form_alter(&$form, &$form_state) {
+  $account = $form['#user'];
+  $category = $form['#user_category'];
+
+  if ($category == 'account' && user_access('opt-in or out of tracking') && ($custom = variable_get('piwik_custom', 0)) != 0 && _piwik_visibility_roles($account)) {
+    $form['piwik'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Piwik configuration'),
+      '#weight' => 3,
+      '#collapsible' => TRUE,
+      '#tree' => TRUE
+    );
+
+    switch ($custom) {
+      case 1:
+        $description = t('Users are tracked by default, but you are able to opt out.');
+        break;
+
+      case 2:
+        $description = t('Users are <em>not</em> tracked by default, but you are able to opt in.');
+        break;
+    }
+
+    $form['piwik']['custom'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable user tracking'),
+      '#description' => $description,
+      '#default_value' => isset($account->data['piwik']['custom']) ? $account->data['piwik']['custom'] : ($custom == 1),
+    );
+
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_user_presave().
+ */
+function piwik_user_presave(&$edit, $account, $category) {
+  if (isset($edit['piwik']['custom'])) {
+    $edit['data']['piwik']['custom'] = $edit['piwik']['custom'];
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function piwik_cron() {
+  // Regenerate the piwik.js every day.
+  if (time() - variable_get('piwik_last_cache', 0) >= 86400 && variable_get('piwik_cache', 0)) {
+    _piwik_cache(variable_get('piwik_url_http', '') . '/piwik.js', TRUE);
+    variable_set('piwik_last_cache', time());
+  }
+}
+
+/**
+ * Download/Synchronize/Cache tracking code file locally.
+ *
+ * @param $location
+ *   The full URL to the external javascript file.
+ * @param $sync_cached_file
+ *   Synchronize tracking code and update if remote file have changed.
+ * @return mixed
+ *   The path to the local javascript file on success, boolean FALSE on failure.
+ */
+function _piwik_cache($location, $sync_cached_file = FALSE) {
+  $path = 'public://piwik';
+  $file_destination = $path . '/' . basename($location);
+
+  if (!file_exists($file_destination) || $sync_cached_file) {
+    // Download the latest tracking code.
+    $result = drupal_http_request($location);
+
+    if ($result->code == 200) {
+      if (file_exists($file_destination)) {
+        // Synchronize tracking code and and replace local file if outdated.
+        $data_hash_local = drupal_hash_base64(file_get_contents($file_destination));
+        $data_hash_remote = drupal_hash_base64($result->data);
+        // Check that the files directory is writable.
+        if ($data_hash_local != $data_hash_remote && file_prepare_directory($path)) {
+          // Save updated tracking code file to disk.
+          file_unmanaged_save_data($result->data, $file_destination, FILE_EXISTS_REPLACE);
+          watchdog('piwik', 'Locally cached tracking code file has been updated.', array(), WATCHDOG_INFO);
+
+          // Change query-strings on css/js files to enforce reload for all users.
+          _drupal_flush_css_js();
+        }
+      }
+      else {
+        // Check that the files directory is writable.
+        if (file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
+          // There is no need to flush JS here as core refreshes JS caches
+          // automatically, if new files are added.
+          file_unmanaged_save_data($result->data, $file_destination, FILE_EXISTS_REPLACE);
+          watchdog('piwik', 'Locally cached tracking code file has been saved.', array(), WATCHDOG_INFO);
+
+          // Return the local JS file path.
+          return file_create_url($file_destination);
+        }
+      }
+    }
+  }
+  else {
+    // Return the local JS file path.
+    return file_create_url($file_destination);
+  }
+}
+
+/**
+ * Delete cached files and directory.
+ */
+function piwik_clear_js_cache() {
+  $path = 'public://piwik';
+  if (file_prepare_directory($path)) {
+    file_scan_directory($path, '/.*/', array('callback' => 'file_unmanaged_delete'));
+    drupal_rmdir($path);
+
+    // Change query-strings on css/js files to enforce reload for all users.
+    _drupal_flush_css_js();
+
+    watchdog('piwik', 'Local cache has been purged.', array(), WATCHDOG_INFO);
+  }
+}
+
+/**
+ * Helper function for grabbing search keys. Function is missing in D7.
+ *
+ * http://api.drupal.org/api/function/search_get_keys/6
+ */
+function piwik_search_get_keys() {
+  static $return;
+  if (!isset($return)) {
+    // Extract keys as remainder of path
+    // Note: support old GET format of searches for existing links.
+    $path = explode('/', $_GET['q'], 3);
+    $keys = empty($_REQUEST['keys']) ? '' : $_REQUEST['keys'];
+    $return = count($path) == 3 ? $path[2] : $keys;
+  }
+  return $return;
+}
+
+/**
+ * Tracking visibility check for an user object.
+ *
+ * @param $account
+ *   A user object containing an array of roles to check.
+ * @return boolean
+ *   A decision on if the current user is being tracked by Piwik.
+ */
+function _piwik_visibility_user($account) {
+
+  $enabled = FALSE;
+
+  // Is current user a member of a role that should be tracked?
+  if (_piwik_visibility_roles($account)) {
+
+    // Use the user's block visibility setting, if necessary.
+    if (($custom = variable_get('piwik_custom', 0)) != 0) {
+      if ($account->uid && isset($account->data['piwik']['custom'])) {
+        $enabled = $account->data['piwik']['custom'];
+      }
+      else {
+        $enabled = ($custom == 1);
+      }
+    }
+    else {
+      $enabled = TRUE;
+    }
+
+  }
+
+  return $enabled;
+}
+
+/**
+ * Based on visibility setting this function returns TRUE if GA code should
+ * be added for the current role and otherwise FALSE.
+ */
+function _piwik_visibility_roles($account) {
+
+  $enabled = FALSE;
+  $roles = variable_get('piwik_roles', array());
+
+  if (array_sum($roles) > 0) {
+    // One or more roles are selected for tracking.
+    foreach (array_keys($account->roles) as $rid) {
+      // Is the current user a member of one role enabled for tracking?
+      if (isset($roles[$rid]) && $rid == $roles[$rid]) {
+        // Current user is a member of a role that should be tracked.
+        $enabled = TRUE;
+        break;
+      }
+    }
+  }
+  else {
+    // No role is selected for tracking, therefor all roles should be tracked.
+    $enabled = TRUE;
+  }
+
+  return $enabled;
+}
+
+/**
+ * Based on visibility setting this function returns TRUE if GA code should
+ * be added to the current page and otherwise FALSE.
+ */
+function _piwik_visibility_pages() {
+  static $page_match;
+
+  // Cache visibility setting in hook_init for hook_footer.
+  if (!isset($page_match)) {
+
+    $visibility = variable_get('piwik_visibility', 0);
+    $setting_pages = variable_get('piwik_pages', '');
+
+    // Match path if necessary.
+    if (!empty($setting_pages)) {
+      // Convert path to lowercase. This allows comparison of the same path
+      // with different case. Ex: /Page, /page, /PAGE.
+      $pages = drupal_strtolower($setting_pages);
+      if ($visibility < 2) {
+        // Convert the Drupal path to lowercase
+        $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+        // Compare the lowercase internal and lowercase path alias (if any).
+        $page_match = drupal_match_path($path, $pages);
+        if ($path != $_GET['q']) {
+          $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+        }
+        // When $visibility has a value of 0, the tracking code is displayed on
+        // all pages except those listed in $pages. When set to 1, it
+        // is displayed only on those pages listed in $pages.
+        $page_match = !($visibility xor $page_match);
+      }
+      elseif (module_exists('php')) {
+        $page_match = php_eval($setting_pages);
+      }
+      else {
+        $page_match = FALSE;
+      }
+    }
+    else {
+      $page_match = TRUE;
+    }
+
+  }
+  return $page_match;
+}

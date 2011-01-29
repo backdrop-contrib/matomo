@@ -1,0 +1,8 @@
+; $Id$
+name = "Piwik Web analytics"
+description = Adds Piwik javascript tracking code to all your site's pages.
+core = 7.x
+package = Statistics
+configure = admin/config/system/piwik
+
+files[] = piwik.test
