@@ -43,7 +43,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
     variable_set('piwik_pages', "admin*");
     variable_set('piwik_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
     $ua_code = '1';
-    variable_set('piwik_account', $ua_code);
+    variable_set('piwik_site_id', $ua_code);
 
     // Check tracking code visibility.
     $this->drupalGet('');
