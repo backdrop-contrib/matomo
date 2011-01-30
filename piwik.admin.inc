@@ -195,6 +195,7 @@ function piwik_admin_settings_form($form_state) {
     );
   }
 
+  // Code snippet settings.
   $form['advanced']['codesnippet'] = array(
     '#type' => 'fieldset',
     '#title' => t('Custom JavaScript code'),
