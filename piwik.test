@@ -91,7 +91,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
     $this->assertNoRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is not displayed on front page.');
 
     // Test whether tracking code is not display for anonymous.
-    $this->drupalGet('logout');
+    $this->drupalLogout();
     $this->drupalGet('');
     $this->assertNoRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is not displayed for anonymous.');
   }
