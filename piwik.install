@@ -26,6 +26,8 @@ function piwik_uninstall() {
   variable_del('piwik_codesnippet_after');
   variable_del('piwik_js_scope');
   variable_del('piwik_last_cache');
+  variable_del('piwik_page_title_hierarchy');
+  variable_del('piwik_page_title_hierarchy_exclude_home');
   variable_del('piwik_pages');
   variable_del('piwik_roles');
   variable_del('piwik_site_id');

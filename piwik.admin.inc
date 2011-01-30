@@ -169,6 +169,27 @@ function piwik_admin_settings_form($form_state) {
     '#disabled' => (module_exists('search') ? FALSE : TRUE),
   );
 
+  // Piwik page title tree view settings.
+  $form['page_title_hierarchy'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Page titles hierarchy'),
+    '#description' => t('This functionality enables a dynamically expandable tree view of your site page titles in your Piwik statistics. See in Piwik statistics under <em>Actions</em> > <em>Page titles</em>.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['page_title_hierarchy']['piwik_page_title_hierarchy'] = array(
+    '#type' => 'checkbox',
+    '#title' => t("Show page titles as hierarchy like breadcrumbs"),
+    '#description' => t('By default Piwik tracks the current page title and shows you a flat list of the most popular titles. This enables a breadcrumbs like tree view.'),
+    '#default_value' => variable_get('piwik_page_title_hierarchy', FALSE),
+  );
+  $form['page_title_hierarchy']['piwik_page_title_hierarchy_exclude_home'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide home page from hierarchy'),
+    '#description' => t('If enabled, the "Home" item will be removed from the hierarchy to flatten the structure in the Piwik statistics. Hits to the home page will still be counted, but for other pages the hierarchy will start at level Home+1.'),
+    '#default_value' => variable_get('piwik_page_title_hierarchy_exclude_home', TRUE),
+  );
+
   // Advanced feature configurations.
   $form['advanced'] = array(
     '#type' => 'fieldset',

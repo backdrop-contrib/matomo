@@ -86,6 +86,26 @@ function piwik_page_alter(&$page) {
     $piwik_vars = array();
     $url_custom = '';
 
+    // Piwik can show a tree view of page titles that represents the site structure
+    // if setDocumentTitle() provides the page titles as a "/" delimited list.
+    // This may makes it easier to browse through the statistics of page titles
+    // on larger sites.
+    if (variable_get('piwik_page_title_hierarchy', FALSE) == TRUE) {
+      $titles = _piwik_get_hierarchy_titles();
+
+      if (variable_get('piwik_page_title_hierarchy_exclude_home', TRUE)) {
+        // Remove the "Home" item from the titles to flatten the tree view.
+        array_shift($titles);
+      }
+
+      if (!empty($titles)) {
+        // Encode title, at least to keep "/" intact.
+        $titles = array_map('urlencode', $titles);
+
+        $url_custom = drupal_json_encode(implode('/', $titles));
+      }
+    }
+
     // Site search tracking support.
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
       $url_custom = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys)))));
@@ -436,4 +456,53 @@ function _piwik_visibility_pages() {
 
   }
   return $page_match;
+}
+
+/**
+ * Get the page titles trail for the current page.
+ *
+ * Based on menu_get_active_breadcrumb().
+ *
+ * @return array
+ *   All page titles, including current page.
+ */
+function _piwik_get_hierarchy_titles() {
+  $titles = array();
+
+  // No breadcrumb for the front page.
+  if (drupal_is_front_page()) {
+    return $titles;
+  }
+
+  $item = menu_get_item();
+  if (!empty($item['access'])) {
+    $active_trail = menu_get_active_trail();
+
+    // Allow modules to alter the breadcrumb, if possible, as that is much
+    // faster than rebuilding an entirely new active trail.
+    drupal_alter('menu_breadcrumb', $active_trail, $item);
+
+    // Remove the tab root (parent) if the current path links to its parent.
+    // Normally, the tab root link is included in the breadcrumb, as soon as we
+    // are on a local task or any other child link. However, if we are on a
+    // default local task (e.g., node/%/view), then we do not want the tab root
+    // link (e.g., node/%) to appear, as it would be identical to the current
+    // page. Since this behavior also needs to work recursively (i.e., on
+    // default local tasks of default local tasks), and since the last non-task
+    // link in the trail is used as page title (see menu_get_active_title()),
+    // this condition cannot be cleanly integrated into menu_get_active_trail().
+    // menu_get_active_trail() already skips all links that link to their parent
+    // (commonly MENU_DEFAULT_LOCAL_TASK). In order to also hide the parent link
+    // itself, we always remove the last link in the trail, if the current
+    // router item links to its parent.
+    if (($item['type'] & MENU_LINKS_TO_PARENT) == MENU_LINKS_TO_PARENT) {
+      array_pop($active_trail);
+    }
+
+    foreach ($active_trail as $parent) {
+      $titles[] = $parent['title'];
+    }
+  }
+
+  return $titles;
 }
