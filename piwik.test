@@ -47,7 +47,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
 
     // Check tracking code visibility.
     $this->drupalGet('');
-    $this->assertRaw($ua_code, '[testPiwikTracking]: Tracking code is displayed for authenticated.');
+    $this->assertRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is displayed for authenticated.');
 
     /* Sample JS code as added to page:
     <script type="text/javascript">
@@ -75,7 +75,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
 
     // Test whether tracking code is not included on pages to omit.
     $this->drupalGet('admin');
-    $this->assertNoRaw($ua_code, '[testPiwikTracking]: Tracking code is not displayed on admin page.');
+    $this->assertNoRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is not displayed on admin page.');
     $this->drupalGet('admin/settings/piwik');
     // Checking for tracking code URI here, as $ua_code is displayed in the form.
     $this->assertNoRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is not displayed on admin subpage.');
@@ -83,7 +83,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
     // Test whether tracking code display is properly flipped.
     variable_set('piwik_visibility', 1);
     $this->drupalGet('admin');
-    $this->assertRaw($ua_code, '[testPiwikTracking]: Tracking code is displayed on admin page.');
+    $this->assertRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is displayed on admin page.');
     $this->drupalGet('admin/settings/piwik');
     // Checking for tracking code URI here, as $ua_code is displayed in the form.
     $this->assertRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is displayed on admin subpage.');
