@@ -83,16 +83,6 @@ function piwik_page_alter(&$page) {
     $url_https = variable_get('piwik_url_https', '');
     $scope = variable_get('piwik_js_scope', 'footer');
 
-    // Should a local cached copy of the tracking code be used?
-    $piwik = 'var pkBaseURL = (("https:" == document.location.protocol) ? "'. check_url($url_https) .'" : "'. check_url($url_http) .'");';
-    if (variable_get('piwik_cache', 0) && $url = _piwik_cache($url_http .'/piwik.js')) {
-      drupal_add_js($url, array('scope' => $scope));
-    }
-    else {
-      $piwik .= 'document.write(unescape("%3Cscript src=\'" + pkBaseURL + "/piwik.js\' type=\'text/javascript\'%3E%3C/script%3E"));';
-    }
-    drupal_add_js($piwik, array('scope'=> $scope, 'type' => 'inline'));
-
     $piwik_vars = array();
     $url_custom = '';
 
@@ -126,16 +116,21 @@ function piwik_page_alter(&$page) {
     $codesnippet_before = variable_get('piwik_codesnippet_before', '');
     $codesnippet_after = variable_get('piwik_codesnippet_after', '');
 
-    // Build settings code. See http://piwik.org/docs/javascript-tracking/
-    $script = 'try {';
-    $script .= 'var piwikTracker = Piwik.getTracker(pkBaseURL + "/piwik.php", '. drupal_json_encode(variable_get('piwik_site_id', '')) .');';
+    // Build tracker code. See http://piwik.org/docs/javascript-tracking/#toc-asynchronous-tracking
+    $script = 'var _paq = _paq || [];';
+    $script .= '(function(){';
+    $script .= 'var u=(("https:" == document.location.protocol) ? "'. check_url($url_https) .'" : "'. check_url($url_http) .'");';
+    $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('piwik_site_id', '')) . ']);';
+    $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
 
+    // Custom document titles.
     if (!empty($url_custom)) {
-      $script .= 'piwikTracker.setDocumentTitle('. $url_custom .');';
+      $script .= '_paq.push(["setDocumentTitle", ' . $url_custom . ']);';
     }
 
+    // Custom file download extensions.
     if ((variable_get('piwik_track', 1)) && !(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS) == PK_TRACKFILES_EXTENSIONS)) {
-      $script .= 'piwikTracker.setDownloadExtensions('. drupal_json_encode(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS)) .');';
+      $script .= '_paq.push(["setDownloadExtensions", ' . drupal_json_encode(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS)) . ']);';
     }
 
     // Add custom variables.
@@ -145,22 +140,46 @@ function piwik_page_alter(&$page) {
         $piwik_vars_fields[] = drupal_json_encode($name) .':'. drupal_json_encode($value);
       }
       if (count($piwik_vars_fields) > 0) {
-        $script .= 'piwikTracker.setCustomVars({ '. implode(', ', $piwik_vars_fields) .' });';
+        $script .= '_paq.push(["setCustomVars", {' . implode(', ', $piwik_vars_fields) . '}]);';
       }
     }
     if (!empty($codesnippet_before)) {
       $script .= $codesnippet_before;
     }
-    $script .= 'piwikTracker.trackPageView();';
+
+    $script .= '_paq.push(["trackPageView"]);';
 
     // Add link tracking.
     if (variable_get('piwik_track', 1)) {
-      $script .= 'piwikTracker.enableLinkTracking();';
+      $script .= '_paq.push(["enableLinkTracking"]);';
     }
     if (!empty($codesnippet_after)) {
       $script .= $codesnippet_after;
     }
-    $script .= '} catch(err) {}';
+
+    $script .= 'var d=document,';
+    $script .= 'g=d.createElement("script"),';
+    $script .= 's=d.getElementsByTagName("script")[0];';
+    $script .= 'g.type="text/javascript";';
+    $script .= 'g.defer=true;';
+    $script .= 'g.async=true;';
+
+    // Should a local cached copy of the tracking code be used?
+    if (variable_get('piwik_cache', 0) && $url = _piwik_cache($url_http .'/piwik.js')) {
+      // A dummy query-string is added to filenames, to gain control over
+      // browser-caching. The string changes on every update or full cache
+      // flush, forcing browsers to load a new copy of the files, as the
+      // URL changed.
+      $query_string = '?' . variable_get('css_js_query_string', '0');
+
+      $script .= 'g.src="' . $url . $query_string . '";';
+    }
+    else {
+      $script .= 'g.src=u+"piwik.js";';
+    }
+
+    $script .= 's.parentNode.insertBefore(g,s);';
+    $script .= '})();';
 
     // Add tracker code to scope.
     drupal_add_js($script, array('scope'=> $scope, 'type' => 'inline'));

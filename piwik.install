@@ -36,6 +36,10 @@ function piwik_uninstall() {
   variable_del('piwik_url_http');
   variable_del('piwik_url_https');
   variable_del('piwik_visibility');
+
+  // Remove backup variables if exits. Remove this code in D8.
+  variable_del('piwik_codesnippet_before_backup_7202');
+  variable_del('piwik_codesnippet_after_backup_7202');
 }
 
 /**
@@ -134,4 +138,67 @@ function piwik_update_6003() {
     variable_set('piwik_trackfiles_extensions', '7z|aac|arc|arj|asf|asx|avi|bin|csv|doc|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls|xml|z|zip');
   }
   return t('The default extensions for download tracking have been updated to piwik defaults.');
+}
+
+/**
+ * Add trailing slash to piwik URLs.
+ */
+function piwik_update_7200() {
+  $url_http = variable_get('piwik_url_http', '');
+  $url_https = variable_get('piwik_url_https', '');
+
+  if (!empty($url_http)) {
+    variable_set('piwik_url_http', $url_http . '/');
+  }
+  if (!empty($url_https)) {
+    variable_set('piwik_url_https', $url_https . '/');
+  }
+
+  return t('Added trailing slash to piwik URLs.');
+}
+
+/**
+ * Move async tracking code to header.
+ */
+function piwik_update_7201() {
+  variable_set('piwik_js_scope', 'header');
+
+  return t('Async tracking code has been moved to header.');
+}
+
+/**
+ * Backup synchronous code snippets.
+ */
+function piwik_update_7202() {
+  $messages = array();
+
+  // TODO: Backup synchronous code snippets. Remove variables in D8.
+  variable_set('piwik_codesnippet_before_backup_7202', variable_get('piwik_codesnippet_before', ''));
+  variable_set('piwik_codesnippet_after_backup_7202', variable_get('piwik_codesnippet_after', ''));
+
+  // Upgrade of BEFORE code snippet.
+  $code_before = variable_get('piwik_codesnippet_before', '');
+  if (!empty($code_before)) {
+    // No value, e.g. piwikTracker.enableLinkTracking()
+    $code_before = preg_replace('/(.*)piwikTracker\.(\w+)\(\);(.*)/i', '$1_paq.push(["$2"]);$3', $code_before);
+    // One value, e.g. piwikTracker.addDownloadExtensions("mp5|mp6"), piwikTracker.trackGoal(1)
+    $code_before = preg_replace('/(.*)piwikTracker\.(\w+)\(("|\'?)(\w+)("|\'?)\);(.*)/i', '$1_paq.push(["$2", $3$4$5]);$6', $code_before);
+    // Multiple values e.g. piwikTracker.trackLink('/store', 'addTransaction', trans)
+    $code_before = preg_replace('/(.*)piwikTracker\.(\w+)\((.*)\);(.*)/i', '$1_paq.push(["$2", $3]);$4', $code_before);
+
+    variable_set('piwik_codesnippet_before', $code_before);
+
+    drupal_set_message(Database::getConnection()->prefixTables("<strong>Attempted</strong> to upgrade Piwik custom 'before' code snippet. Backup of previous code snippet has been saved in database table '{variable}' as 'piwik_codesnippet_before_backup_7202'. Please consult Piwik's <a href='http://piwik.org/docs/javascript-tracking/#toc-asynchronous-tracking'>Asynchronous tracking Guide</a> if the upgrade was successfully."), 'warning');
+    $messages[] = t('Upgraded custom "before" code snippet.');
+  }
+
+  // Upgrade of AFTER code snippet.
+  // We cannot update this code snippet automatically. Show message that the upgrade has been skipped.
+  $code_after = variable_get('piwik_codesnippet_after', '');
+  if (!empty($code_after)) {
+    drupal_set_message(Database::getConnection()->prefixTables("Automatic upgrade of Google Analytics custom 'after' code snippet has been skipped. Backup of previous code snippet has been saved in database table '{variable}' as 'piwik_codesnippet_after_backup_7202'. You need to manually upgrade the custom 'after' code snippet."), 'error');
+    $messages[] = t('Skipped custom "after" code snippet.');
+  }
+
+  return empty($messages) ? t('No custom code snipped found. Nothing to do.') : implode(' ', $messages);
 }
