@@ -130,7 +130,6 @@ function piwik_admin_settings_form($form_state) {
       '#title_display' => 'invisible',
       '#default_value' => $pages,
       '#description' => $description,
-      '#wysiwyg' => FALSE,
     );
   }
 
@@ -208,7 +207,6 @@ function piwik_admin_settings_form($form_state) {
     '#title' => t('Code snippet (before)'),
     '#default_value' => variable_get('piwik_codesnippet_before', ''),
     '#rows' => 5,
-    '#wysiwyg' => FALSE,
     '#description' => t('Code in this textarea will be added <strong>before</strong> _paq.push(["trackPageView"]).')
   );
   $form['advanced']['codesnippet']['piwik_codesnippet_after'] = array(
@@ -216,7 +214,6 @@ function piwik_admin_settings_form($form_state) {
     '#title' => t('Code snippet (after)'),
     '#default_value' => variable_get('piwik_codesnippet_after', ''),
     '#rows' => 5,
-    '#wysiwyg' => FALSE,
     '#description' => t('Code in this textarea will be added <strong>after</strong> _paq.push(["trackPageView"]). This is useful if you\'d like to track a site in two accounts.')
   );
 
