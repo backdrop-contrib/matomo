@@ -12,9 +12,10 @@ function piwik_install() {
   $pages = array(
     'admin',
     'admin/*',
-    'user/*/*',
+    'batch',
     'node/add*',
     'node/*/*',
+    'user/*/*',
   );
   variable_set('piwik_pages', implode("\n", $pages));
 }
@@ -203,4 +204,36 @@ function piwik_update_7202() {
   }
 
   return empty($messages) ? t('No custom code snipped found. Nothing to do.') : implode(' ', $messages);
+}
+
+/**
+ * Path visibility filter setting should hide "batch" path.
+ */
+function piwik_update_7203() {
+  // Latest pages setting.
+  $pages = array(
+    'admin',
+    'admin/*',
+    'user/*/*',
+    'node/add*',
+    'node/*/*',
+  );
+
+  $diff = array_diff($pages, preg_split('/(\r\n?|\n)/', variable_get('piwik_pages', implode("\n", $pages))));
+  if (empty($diff)) {
+    // No diff to latest settings found. Update with new settings.
+    $pages = array(
+      'admin',
+      'admin/*',
+      'batch',
+      'node/add*',
+      'node/*/*',
+      'user/*/*',
+    );
+    variable_set('piwik_pages', implode("\n", $pages));
+    return t('Added "batch" to path visibility filter setting.');
+  }
+  else {
+    return t('Custom path visibility filter setting found. Update skipped!');
+  }
 }
