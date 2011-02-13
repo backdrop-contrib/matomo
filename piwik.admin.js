@@ -12,8 +12,14 @@ Drupal.behaviors.trackingSettingsSummary = {
     }
 
     $('fieldset#edit-page-vis-settings', context).drupalSetSummary(function (context) {
-      if (!$('textarea[name="piwik_pages"]', context).val()) {
-        return Drupal.t('Not restricted');
+      var $radio = $('input[name="piwik_visibility"]:checked', context);
+      if ($radio.val() == 0) {
+        if (!$('textarea[name="piwik_pages"]', context).val()) {
+          return Drupal.t('Not restricted');
+        }
+        else {
+          return Drupal.t('All pages with exceptions');
+        }
       }
       else {
         return Drupal.t('Restricted to certain pages');
