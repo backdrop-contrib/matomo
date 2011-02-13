@@ -66,6 +66,17 @@ Drupal.behaviors.trackingSettingsSummary = {
       }
       return Drupal.t('@items tracked', {'@items' : vals.join(', ')});
     });
+
+    $('fieldset#edit-privacy', context).drupalSetSummary(function (context) {
+      var vals = [];
+      if ($('input#edit-piwik-privacy-donottrack', context).is(':checked')) {
+        vals.push('Universal web tracking opt-out');
+      }
+      if (!vals.length) {
+        return Drupal.t('No privacy');
+      }
+      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
+    });
   }
 };
 

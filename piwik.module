@@ -234,11 +234,25 @@ function piwik_form_user_profile_form_alter(&$form, &$form_state) {
         break;
     }
 
+    // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
+    $disabled = FALSE;
+    if (variable_get('piwik_privacy_donottrack', 1) && !empty($_SERVER['HTTP_DNT'])) {
+      $disabled = TRUE;
+
+      // Override settings value.
+      $account->data['piwik']['custom'] = FALSE;
+
+      $description .= '<span class="admin-disabled">';
+      $description .= ' ' . t('You have opted out from tracking via browser privacy settings.');
+      $description .= '</span>';
+    }
+
     $form['piwik']['custom'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable user tracking'),
       '#description' => $description,
       '#default_value' => isset($account->data['piwik']['custom']) ? $account->data['piwik']['custom'] : ($custom == 1),
+      '#disabled' => $disabled,
     );
 
     return $form;
@@ -363,8 +377,11 @@ function _piwik_visibility_user($account) {
 
   $enabled = FALSE;
 
+  // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
+  $dnt = (variable_get('googleanalytics_privacy_donottrack', 1) && !empty($_SERVER['HTTP_DNT'])) ? TRUE : FALSE;
+
   // Is current user a member of a role that should be tracked?
-  if (_piwik_visibility_roles($account)) {
+  if (!$dnt && _piwik_visibility_roles($account)) {
 
     // Use the user's block visibility setting, if necessary.
     if (($custom = variable_get('piwik_custom', 0)) != 0) {
