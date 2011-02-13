@@ -9,7 +9,7 @@
 function piwik_install() {
   // Remove tracking from all administrative pages, see http://drupal.org/node/34970.
   variable_set('piwik_visibility_roles', 0);
-  variable_set('piwik_visibility', 0);
+  variable_set('piwik_visibility_pages', 0);
   $pages = array(
     'admin',
     'admin/*',
@@ -40,7 +40,7 @@ function piwik_uninstall() {
   variable_del('piwik_translation_set');
   variable_del('piwik_url_http');
   variable_del('piwik_url_https');
-  variable_del('piwik_visibility');
+  variable_del('piwik_visibility_pages');
   variable_del('piwik_visibility_roles');
 
   // Remove backup variables if exits. Remove this code in D8.
@@ -239,4 +239,14 @@ function piwik_update_7203() {
   else {
     return t('Custom path visibility filter setting found. Update skipped!');
   }
+}
+
+/**
+ * Rename piwik_visibility variable to piwik_visibility_pages for consistency.
+ */
+function piwik_update_7204() {
+  variable_set('piwik_visibility_pages', variable_get('piwik_visibility', 1));
+  variable_del('piwik_visibility');
+
+  return t('Renamed "piwik_visibility" settings variable to piwik_visibility_pages.');
 }

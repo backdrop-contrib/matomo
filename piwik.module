@@ -440,7 +440,7 @@ function _piwik_visibility_pages() {
   // Cache visibility setting in hook_init for hook_footer.
   if (!isset($page_match)) {
 
-    $visibility = variable_get('piwik_visibility', 0);
+    $visibility = variable_get('piwik_visibility_pages', 0);
     $setting_pages = variable_get('piwik_pages', '');
 
     // Match path if necessary.

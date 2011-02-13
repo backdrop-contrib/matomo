@@ -39,7 +39,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
   public function testPiwikTracking() {
     // Set visibility to hide tracking code on admin page only,
     // track authenticated users.
-    variable_set('piwik_visibility', 0);
+    variable_set('piwik_visibility_pages', 0);
     variable_set('piwik_pages', "admin*");
     variable_set('piwik_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
     $ua_code = '1';
@@ -83,7 +83,7 @@ class PiwikBasicTest extends DrupalWebTestCase {
     $this->assertNoRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is not displayed on admin subpage.');
 
     // Test whether tracking code display is properly flipped.
-    variable_set('piwik_visibility', 1);
+    variable_set('piwik_visibility_pages', 1);
     $this->drupalGet('admin');
     $this->assertRaw('u+"piwik.php"', '[testPiwikTracking]: Tracking code is displayed on admin page.');
     $this->drupalGet('admin/settings/piwik');
