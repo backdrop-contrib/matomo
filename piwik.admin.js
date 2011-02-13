@@ -32,9 +32,14 @@ Drupal.behaviors.trackingSettingsSummary = {
         vals.push($.trim($(this).next('label').text()));
       });
       if (!vals.length) {
-        vals.push(Drupal.t('Not restricted'));
+        return Drupal.t('Not restricted');
       }
-      return vals.join(', ');
+      else if ($('input[name="piwik_visibility_roles"]:checked', context).val() == 1) {
+        return Drupal.t('Excepted: @roles', {'@roles' : vals.join(', ')});
+      }
+      else {
+        return vals.join(', ');
+      }
     });
 
     $('fieldset#edit-user-vis-settings', context).drupalSetSummary(function (context) {

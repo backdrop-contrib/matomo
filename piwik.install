@@ -8,6 +8,7 @@
 
 function piwik_install() {
   // Remove tracking from all administrative pages, see http://drupal.org/node/34970.
+  variable_set('piwik_visibility_roles', 0);
   variable_set('piwik_visibility', 0);
   $pages = array(
     'admin',
@@ -40,6 +41,7 @@ function piwik_uninstall() {
   variable_del('piwik_url_http');
   variable_del('piwik_url_https');
   variable_del('piwik_visibility');
+  variable_del('piwik_visibility_roles');
 
   // Remove backup variables if exits. Remove this code in D8.
   variable_del('piwik_codesnippet_before_backup_7202');

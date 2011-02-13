@@ -407,22 +407,23 @@ function _piwik_visibility_user($account) {
  */
 function _piwik_visibility_roles($account) {
 
-  $enabled = FALSE;
+  $visibility = variable_get('piwik_visibility_roles', 0);
+  $enabled = $visibility;
   $roles = variable_get('piwik_roles', array());
 
   if (array_sum($roles) > 0) {
-    // One or more roles are selected for tracking.
+    // One or more roles are selected.
     foreach (array_keys($account->roles) as $rid) {
-      // Is the current user a member of one role enabled for tracking?
+      // Is the current user a member of one of these roles?
       if (isset($roles[$rid]) && $rid == $roles[$rid]) {
-        // Current user is a member of a role that should be tracked.
-        $enabled = TRUE;
+        // Current user is a member of a role that should be tracked/excluded from tracking.
+        $enabled = !$visibility;
         break;
       }
     }
   }
   else {
-    // No role is selected for tracking, therefor all roles should be tracked.
+    // No role is selected for tracking, therefore all roles should be tracked.
     $enabled = TRUE;
   }
 
