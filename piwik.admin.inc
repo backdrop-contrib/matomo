@@ -77,13 +77,23 @@ function piwik_admin_settings_form($form_state) {
     '#title' => t('Roles'),
   );
 
+  $form['tracking']['role_vis_settings']['piwik_visibility_roles'] = array(
+    '#type' => 'radios',
+    '#title' => t('Add tracking for specific roles'),
+    '#options' => array(
+      t('Add to the selected roles only'),
+      t('Add to every role except the selected ones'),
+    ),
+    '#default_value' => variable_get('piwik_visibility_roles', 0),
+  );
+
   $role_options = array_map('check_plain', user_roles());
   $form['tracking']['role_vis_settings']['piwik_roles'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Add tracking for specific roles'),
+    '#title' => t('Roles'),
     '#default_value' => variable_get('piwik_roles', array()),
     '#options' => $role_options,
-    '#description' => t('If none are selected, all users will be tracked. If a user has any of the roles checked, that user will be tracked.'),
+    '#description' => t('If none of the roles are selected, all users will be tracked. If a user has any of the roles checked, that user will be tracked (or excluded, depending on the setting above).'),
   );
 
   // Page specific visibility configurations.
