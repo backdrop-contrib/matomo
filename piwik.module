@@ -377,8 +377,9 @@ function _piwik_visibility_user($account) {
 
   $enabled = FALSE;
 
-  // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
-  $dnt = (variable_get('piwik_privacy_donottrack', 1) && !empty($_SERVER['HTTP_DNT'])) ? TRUE : FALSE;
+  // Disable tracking if caching is disabled or a visitors is logged in and
+  // have opted out from tracking via DNT (Do-Not-Track) header.
+  $dnt = (($account->uid || variable_get('cache', 0) == 0) && variable_get('piwik_privacy_donottrack', 1) && !empty($_SERVER['HTTP_DNT'])) ? TRUE : FALSE;
 
   // Is current user a member of a role that should be tracked?
   if (!$dnt && _piwik_visibility_roles($account)) {
