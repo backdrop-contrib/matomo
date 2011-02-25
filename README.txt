@@ -1,4 +1,3 @@
-// $Id$
 
 Module: Piwik - Web analytics
 Author: Alexander Hass <http://www.hass.de/>
