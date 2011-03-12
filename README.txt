@@ -73,5 +73,3 @@ not work with this configuration and gives you a server error 500.
    <IfModule mod_php5.c>
      php_value session.save_handler files
    </IfModule>
-
-   
