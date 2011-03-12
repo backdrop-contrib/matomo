@@ -152,6 +152,11 @@ function piwik_page_alter(&$page) {
       $script .= '_paq.push(["setDownloadExtensions", ' . drupal_json_encode(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS)) . ']);';
     }
 
+    // DoNotTrack (DNT) feature.
+    if (variable_get('piwik_privacy_donottrack', 1)) {
+      $script .= '_paq.push(["setDoNotTrack", 1]);';
+    }
+
     // Add custom variables.
     if (!empty($piwik_vars)) {
       $piwik_vars_fields = array();
@@ -233,25 +238,11 @@ function piwik_form_user_profile_form_alter(&$form, &$form_state) {
         break;
     }
 
-    // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
-    $disabled = FALSE;
-    if (variable_get('piwik_privacy_donottrack', 1) && !empty($_SERVER['HTTP_DNT'])) {
-      $disabled = TRUE;
-
-      // Override settings value.
-      $account->data['piwik']['custom'] = FALSE;
-
-      $description .= '<span class="admin-disabled">';
-      $description .= ' ' . t('You have opted out from tracking via browser privacy settings.');
-      $description .= '</span>';
-    }
-
     $form['piwik']['custom'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable user tracking'),
       '#description' => $description,
       '#default_value' => isset($account->data['piwik']['custom']) ? $account->data['piwik']['custom'] : ($custom == 1),
-      '#disabled' => $disabled,
     );
 
     return $form;
@@ -376,12 +367,8 @@ function _piwik_visibility_user($account) {
 
   $enabled = FALSE;
 
-  // Disable tracking if caching is disabled or a visitors is logged in and
-  // have opted out from tracking via DNT (Do-Not-Track) header.
-  $dnt = (($account->uid || variable_get('cache', 0) == 0) && variable_get('piwik_privacy_donottrack', 1) && !empty($_SERVER['HTTP_DNT'])) ? TRUE : FALSE;
-
   // Is current user a member of a role that should be tracked?
-  if (!$dnt && _piwik_visibility_roles($account)) {
+  if (_piwik_visibility_roles($account)) {
 
     // Use the user's block visibility setting, if necessary.
     if (($custom = variable_get('piwik_custom', 0)) != 0) {
