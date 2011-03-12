@@ -152,7 +152,7 @@ function piwik_page_alter(&$page) {
       $script .= '_paq.push(["setDownloadExtensions", ' . drupal_json_encode(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS)) . ']);';
     }
 
-    // DoNotTrack (DNT) feature.
+    // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
     if (variable_get('piwik_privacy_donottrack', 1)) {
       $script .= '_paq.push(["setDoNotTrack", 1]);';
     }
