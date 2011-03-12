@@ -22,6 +22,17 @@ function piwik_help($path, $arg) {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function piwik_theme() {
+  return array(
+    'piwik_admin_custom_var_table' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
  * Implements hook_permission().
  */
 function piwik_permission() {
@@ -82,7 +93,6 @@ function piwik_page_alter(&$page) {
     $url_https = variable_get('piwik_url_https', '');
     $scope = variable_get('piwik_js_scope', 'footer');
 
-    $piwik_vars = array();
     $url_custom = '';
 
     // Piwik can show a tree view of page titles that represents the site structure
@@ -158,17 +168,46 @@ function piwik_page_alter(&$page) {
     }
 
     // Add custom variables.
-    if (!empty($piwik_vars)) {
-      $piwik_vars_fields = array();
-      foreach ($piwik_vars as $name => $value) {
-        $piwik_vars_fields[] = drupal_json_encode($name) . ':' . drupal_json_encode($value);
-      }
-      if (count($piwik_vars_fields) > 0) {
-        $script .= '_paq.push(["setCustomVars", {' . implode(', ', $piwik_vars_fields) . '}]);';
+    $piwik_custom_vars = variable_get('piwik_custom_var', array());
+    $custom_var = '';
+    for ($i = 1; $i < 6; $i++) {
+      $custom_var_name = !empty($piwik_custom_vars['slots'][$i]['name']) ? $piwik_custom_vars['slots'][$i]['name'] : '';
+      if (!empty($custom_var_name)) {
+        $custom_var_value = !empty($piwik_custom_vars['slots'][$i]['value']) ? $piwik_custom_vars['slots'][$i]['value'] : '';
+        $custom_var_scope = !empty($piwik_custom_vars['slots'][$i]['scope']) ? $piwik_custom_vars['slots'][$i]['scope'] : 1;
+
+        $node = menu_get_object();
+        $custom_var_value = token_replace($custom_var_value, array('node' => $node), array('clear' => TRUE));
+
+        // Suppress empty custom variables.
+        if (!is_numeric($custom_var_value) && empty($custom_var_value)) {
+          continue;
+        }
+
+        // TODO: Does this limitation also exists in Piwik like in Google Analytics?
+        // The length of the string used for the 'name' and the length of the
+        // string used for the 'value' must not exceed 64 bytes after url encoding.
+        $name_length = drupal_strlen(rawurlencode($custom_var_name));
+        $tmp_value = rawurlencode($custom_var_value);
+        $value_length = drupal_strlen($tmp_value);
+        if ($name_length + $value_length > 64) {
+          // Trim value and remove fragments of url encoding.
+          $tmp_value = rtrim(substr($tmp_value, 0, 63 - $name_length), '%0..9A..F');
+          $custom_var_value = urldecode($tmp_value);
+        }
+
+        $custom_var_name = drupal_json_encode($custom_var_name);
+        $custom_var_value = drupal_json_encode($custom_var_value);
+        // TODO: Scope is not yet implemented in piwik. Maybe in future?
+        $custom_var .= "_paq.push(['setCustomVariable', $i, $custom_var_name, $custom_var_value]);";
       }
     }
+
     if (!empty($codesnippet_before)) {
       $script .= $codesnippet_before;
+    }
+    if (!empty($custom_var)) {
+      $script .= $custom_var;
     }
 
     $script .= '_paq.push(["trackPageView"]);';
