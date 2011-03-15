@@ -51,6 +51,7 @@ Scope: Visitor
 More details about custom variables can be found in the Piwik API documentation at
 http://piwik.org/docs/javascript-tracking/#toc-custom-variables.
 
+
 Advanced Settings
 =================
 You can include additional JavaScript snippets in the advanced
