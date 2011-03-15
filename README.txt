@@ -32,6 +32,25 @@ HTML footer can confirm this by viewing the page source from
 your browser.
 
 
+Custom variables
+=================
+One example for custom variables tracking is the "User roles" tracking. Enter
+the below configuration data into the custom variables settings form under
+admin/config/system/piwik.
+
+Slot: 1
+Name: User roles
+Value: [current-user:piwik-role-names]
+Scope: Visitor
+
+Slot: 1
+Name: User ids
+Value: [current-user:piwik-role-ids]
+Scope: Visitor
+
+More details about custom variables can be found in the Piwik API documentation at
+http://piwik.org/docs/javascript-tracking/#toc-custom-variables.
+
 Advanced Settings
 =================
 You can include additional JavaScript snippets in the advanced
