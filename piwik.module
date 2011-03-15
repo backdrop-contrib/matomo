@@ -93,7 +93,8 @@ function piwik_page_alter(&$page) {
     $url_https = variable_get('piwik_url_https', '');
     $scope = variable_get('piwik_js_scope', 'footer');
 
-    $url_custom = '';
+    $set_custom_url = '';
+    $set_document_title = '';
 
     // Piwik can show a tree view of page titles that represents the site structure
     // if setDocumentTitle() provides the page titles as a "/" delimited list.
@@ -111,13 +112,13 @@ function piwik_page_alter(&$page) {
         // Encode title, at least to keep "/" intact.
         $titles = array_map('urlencode', $titles);
 
-        $url_custom = drupal_json_encode(implode('/', $titles));
+        $set_document_title = drupal_json_encode(implode('/', $titles));
       }
     }
 
     // Site search tracking support.
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
-      $url_custom = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys)))));
+      $set_custom_url = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys)))));
     }
 
     // If this node is a translation of another node, pass the original
@@ -129,16 +130,16 @@ function piwik_page_alter(&$page) {
       if ($node && translation_supported_type($node->type) && isset($node->tnid) && ($node->tnid != $node->nid)) {
         $source_node = node_load($node->tnid);
         $languages = language_list();
-        $url_custom = drupal_json_encode(url('node/' . $source_node->nid, array('language' => $languages[$source_node->language])));
+        $set_custom_url = drupal_json_encode(url('node/' . $source_node->nid, array('language' => $languages[$source_node->language])));
       }
     }
 
     // Track access denied (403) and file not found (404) pages.
     if ($status == '403 Forbidden') {
-      $url_custom = '"403/URL = " + encodeURIComponent(document.location.pathname + document.location.search) + "/From=" + encodeURIComponent(document.referrer)';
+      $set_document_title = '"403/URL = " + String(document.location.pathname + document.location.search).replace(///g,"%2f") + "/From = " + String(document.referrer).replace(///g,"%2f")';
     }
     elseif ($status == '404 Not Found') {
-      $url_custom = '"404/URL = " + encodeURIComponent(document.location.pathname + document.location.search) + "/From=" + encodeURIComponent(document.referrer)';
+      $set_document_title = '"404/URL = " + String(document.location.pathname + document.location.search).replace(///g,"%2f") + "/From = " + String(document.referrer).replace(///g,"%2f")';
     }
 
     // Add any custom code snippets if specified.
@@ -152,9 +153,13 @@ function piwik_page_alter(&$page) {
     $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('piwik_site_id', '')) . ']);';
     $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
 
-    // Custom document titles.
-    if (!empty($url_custom)) {
-      $script .= '_paq.push(["setDocumentTitle", ' . $url_custom . ']);';
+    // Set custom url.
+    if (!empty($set_custom_url)) {
+      $script .= '_paq.push(["setCustomUrl", ' . $set_custom_url . ']);';
+    }
+    // Set custom document title.
+    if (!empty($set_document_title)) {
+      $script .= '_paq.push(["setDocumentTitle", ' . $set_document_title . ']);';
     }
 
     // Custom file download extensions.
