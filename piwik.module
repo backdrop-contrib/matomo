@@ -95,7 +95,6 @@ function piwik_page_alter(&$page) {
 
     $set_custom_url = '';
     $set_document_title = '';
-    $set_custom_data = array();
 
     // Piwik can show a tree view of page titles that represents the site structure
     // if setDocumentTitle() provides the page titles as a "/" delimited list.
@@ -120,7 +119,6 @@ function piwik_page_alter(&$page) {
     // Site search tracking support.
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
       $set_custom_url = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys), 'absolute' => TRUE))));
-      $set_custom_data[] = '"{SiteSearch_Results: " + (window.piwik_search_results) ? window.piwik_search_results : 0 + "}"';
     }
 
     // If this node is a translation of another node, pass the original
@@ -155,12 +153,6 @@ function piwik_page_alter(&$page) {
     $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('piwik_site_id', '')) . ']);';
     $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
 
-    // Set custom data.
-    if (!empty($set_custom_data)) {
-      foreach ($set_custom_data as $custom_data) {
-        $script .= '_paq.push(["setCustomData", ' . $custom_data . ']);';
-      }
-    }
     // Set custom url.
     if (!empty($set_custom_url)) {
       $script .= '_paq.push(["setCustomUrl", ' . $set_custom_url . ']);';
@@ -562,8 +554,4 @@ function _piwik_get_hierarchy_titles() {
   }
 
   return $titles;
-}
-
-function piwik_preprocess_search_results(&$variables) {
-  drupal_add_js('window.piwik_search_results = ' . count($variables['results']) . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
 }
