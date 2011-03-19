@@ -95,6 +95,7 @@ function piwik_page_alter(&$page) {
 
     $set_custom_url = '';
     $set_document_title = '';
+    $set_custom_data = array();
 
     // Piwik can show a tree view of page titles that represents the site structure
     // if setDocumentTitle() provides the page titles as a "/" delimited list.
@@ -119,6 +120,10 @@ function piwik_page_alter(&$page) {
     // Site search tracking support.
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
       $set_custom_url = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys), 'absolute' => TRUE))));
+
+      // hook_preprocess_search_results() is not executed if search result is
+      // empty. Make sure the counter is set to 0 if there are no results.
+      $set_custom_data[] = '{SiteSearch_Results: (window.piwik_search_results) ? window.piwik_search_results : 0 }';
     }
 
     // If this node is a translation of another node, pass the original
@@ -153,6 +158,12 @@ function piwik_page_alter(&$page) {
     $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('piwik_site_id', '')) . ']);';
     $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
 
+    // Set custom data.
+    if (!empty($set_custom_data)) {
+      foreach ($set_custom_data as $custom_data) {
+        $script .= '_paq.push(["setCustomData", ' . $custom_data . ']);';
+      }
+    }
     // Set custom url.
     if (!empty($set_custom_url)) {
       $script .= '_paq.push(["setCustomUrl", ' . $set_custom_url . ']);';
@@ -311,6 +322,20 @@ function piwik_cron() {
     _piwik_cache(variable_get('piwik_url_http', '') . 'piwik.js', TRUE);
     variable_set('piwik_last_cache', REQUEST_TIME);
   }
+}
+
+/**
+ * Implementation of hook_preprocess_search_results().
+ *
+ * Collects the number of search results. It need to be noted, that this
+ * function is not executed if the search result is empty.
+ */
+function piwik_preprocess_search_results(&$variables) {
+  // There is no search result $variable available that hold the number of items
+  // found. But the pager item mumber can tell the number of search results.
+  global $pager_total_items;
+
+  drupal_add_js('window.piwik_search_results = ' . intval($pager_total_items[0]) . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
 }
 
 /**
