@@ -10,6 +10,16 @@ Drupal.behaviors.trackingSettingsSummary = {
       return;
     }
 
+    $('fieldset#edit-domain-tracking', context).drupalSetSummary(function (context) {
+      var $radio = $('input[name="piwik_domain_mode"]:checked', context);
+      if ($radio.val() == 0) {
+        return Drupal.t('A single domain');
+      }
+      else if ($radio.val() == 1) {
+        return Drupal.t('One domain with multiple subdomains');
+      }
+    });
+
     $('fieldset#edit-page-vis-settings', context).drupalSetSummary(function (context) {
       var $radio = $('input[name="piwik_visibility_pages"]:checked', context);
       if ($radio.val() == 0) {

@@ -147,6 +147,37 @@ function piwik_page_alter(&$page) {
       $set_document_title = '"404/URL = " + String(document.location.pathname + document.location.search).replace(///g,"%2f") + "/From = " + String(document.referrer).replace(///g,"%2f")';
     }
 
+    // Add custom variables.
+    $piwik_custom_vars = variable_get('piwik_custom_var', array());
+    $custom_variable = '';
+    for ($i = 1; $i < 6; $i++) {
+      $custom_var_name = !empty($piwik_custom_vars['slots'][$i]['name']) ? $piwik_custom_vars['slots'][$i]['name'] : '';
+      if (!empty($custom_var_name)) {
+        $custom_var_value = !empty($piwik_custom_vars['slots'][$i]['value']) ? $piwik_custom_vars['slots'][$i]['value'] : '';
+        $custom_var_scope = !empty($piwik_custom_vars['slots'][$i]['scope']) ? $piwik_custom_vars['slots'][$i]['scope'] : 1;
+
+        $node = menu_get_object();
+        $custom_var_value = token_replace($custom_var_value, array('node' => $node), array('clear' => TRUE));
+
+        // Suppress empty custom variables.
+        if (!is_numeric($custom_var_value) && empty($custom_var_value)) {
+          continue;
+        }
+
+        // Custom variables names and values are limited to 100 characters in
+        // length each. It is recommended to store values that are as small as
+        // possible to ensure that the Piwik Tracking request URL doesn't go
+        // over the URL limit for the webserver or browser.
+        $custom_var_name = rtrim(substr($custom_var_name, 0, 100));
+        $custom_var_value = rtrim(substr($custom_var_value, 0, 100));
+
+        $custom_var_name = drupal_json_encode($custom_var_name);
+        $custom_var_value = drupal_json_encode($custom_var_value);
+        // TODO: Scope is not yet implemented in piwik. Maybe a new feature in future.
+        $custom_variable .= "_paq.push(['setCustomVariable', $i, $custom_var_name, $custom_var_value]);";
+      }
+    }
+
     // Add any custom code snippets if specified.
     $codesnippet_before = variable_get('piwik_codesnippet_before', '');
     $codesnippet_after = variable_get('piwik_codesnippet_after', '');
@@ -183,35 +214,14 @@ function piwik_page_alter(&$page) {
       $script .= '_paq.push(["setDoNotTrack", 1]);';
     }
 
-    // Add custom variables.
-    $piwik_custom_vars = variable_get('piwik_custom_var', array());
-    $custom_variable = '';
-    for ($i = 1; $i < 6; $i++) {
-      $custom_var_name = !empty($piwik_custom_vars['slots'][$i]['name']) ? $piwik_custom_vars['slots'][$i]['name'] : '';
-      if (!empty($custom_var_name)) {
-        $custom_var_value = !empty($piwik_custom_vars['slots'][$i]['value']) ? $piwik_custom_vars['slots'][$i]['value'] : '';
-        $custom_var_scope = !empty($piwik_custom_vars['slots'][$i]['scope']) ? $piwik_custom_vars['slots'][$i]['scope'] : 1;
+    // Domain tracking type.
+    global $cookie_domain;
+    $domain_mode = variable_get('piwik_domain_mode', 0);
 
-        $node = menu_get_object();
-        $custom_var_value = token_replace($custom_var_value, array('node' => $node), array('clear' => TRUE));
-
-        // Suppress empty custom variables.
-        if (!is_numeric($custom_var_value) && empty($custom_var_value)) {
-          continue;
-        }
-
-        // Custom variables names and values are limited to 100 characters in
-        // length each. It is recommended to store values that are as small as
-        // possible to ensure that the Piwik Tracking request URL doesn't go
-        // over the URL limit for the webserver or browser.
-        $custom_var_name = rtrim(substr($custom_var_name, 0, 100));
-        $custom_var_value = rtrim(substr($custom_var_value, 0, 100));
-
-        $custom_var_name = drupal_json_encode($custom_var_name);
-        $custom_var_value = drupal_json_encode($custom_var_value);
-        // TODO: Scope is not yet implemented in piwik. Maybe be a new feature in future.
-        $custom_variable .= "_paq.push(['setCustomVariable', $i, $custom_var_name, $custom_var_value]);";
-      }
+    // Per RFC 2109, cookie domains must contain at least one dot other than the
+    // first. For hosts such as 'localhost' or IP Addresses we don't set a cookie domain.
+    if ($domain_mode == 1 && count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
+      $script .= '_paq.push(["setCookieDomain", ' . drupal_json_encode($cookie_domain) . ']);';
     }
 
     // Ordering $custom_variable before $codesnippet_before allows users to add

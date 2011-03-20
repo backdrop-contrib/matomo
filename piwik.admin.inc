@@ -53,46 +53,31 @@ function piwik_admin_settings_form($form_state) {
     ),
   );
 
-  // Standard tracking configurations.
-  $form['tracking']['user_vis_settings'] = array(
+  $form['tracking']['domain_tracking'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Users'),
+    '#title' => t('Domains'),
   );
-  $t_permission = array('%permission' => t('opt-in or out of tracking'));
-  $form['tracking']['user_vis_settings']['piwik_custom'] = array(
+
+  global $cookie_domain;
+  $multiple_sub_domains = array();
+  foreach (array('www', 'app', 'shop') as $subdomain) {
+    if (count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
+      $multiple_sub_domains[] = $subdomain . $cookie_domain;
+    }
+    // IP addresses or localhost.
+    else {
+      $multiple_sub_domains[] = $subdomain . '.example.com';
+    }
+  }
+
+  $form['tracking']['domain_tracking']['piwik_domain_mode'] = array(
     '#type' => 'radios',
-    '#title' => t('Allow users to customize tracking on their account page'),
+    '#title' => t('What are you tracking?'),
     '#options' => array(
-      t('No customization allowed'),
-      t('Tracking on by default, users with %permission permission can opt out', $t_permission),
-      t('Tracking off by default, users with %permission permission can opt in', $t_permission)
+      0 => t('A single domain (default)') . '<div class="description">' . t('Domain: @domain', array('@domain' => $_SERVER['HTTP_HOST'])) . '</div>',
+      1 => t('One domain with multiple subdomains') . '<div class="description">' . t('Examples: @domains', array('@domains' => implode(', ', $multiple_sub_domains))) . '</div>',
     ),
-    '#default_value' => variable_get('piwik_custom', 0),
-  );
-
-  // Render the role overview.
-  $form['tracking']['role_vis_settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Roles'),
-  );
-
-  $form['tracking']['role_vis_settings']['piwik_visibility_roles'] = array(
-    '#type' => 'radios',
-    '#title' => t('Add tracking for specific roles'),
-    '#options' => array(
-      t('Add to the selected roles only'),
-      t('Add to every role except the selected ones'),
-    ),
-    '#default_value' => variable_get('piwik_visibility_roles', 0),
-  );
-
-  $role_options = array_map('check_plain', user_roles());
-  $form['tracking']['role_vis_settings']['piwik_roles'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Roles'),
-    '#default_value' => variable_get('piwik_roles', array()),
-    '#options' => $role_options,
-    '#description' => t('If none of the roles are selected, all users will be tracked. If a user has any of the roles checked, that user will be tracked (or excluded, depending on the setting above).'),
+    '#default_value' => variable_get('piwik_domain_mode', 0),
   );
 
   // Page specific visibility configurations.
@@ -142,6 +127,48 @@ function piwik_admin_settings_form($form_state) {
       '#rows' => 10,
     );
   }
+
+  // Render the role overview.
+  $form['tracking']['role_vis_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Roles'),
+  );
+
+  $form['tracking']['role_vis_settings']['piwik_visibility_roles'] = array(
+    '#type' => 'radios',
+    '#title' => t('Add tracking for specific roles'),
+    '#options' => array(
+      t('Add to the selected roles only'),
+      t('Add to every role except the selected ones'),
+    ),
+    '#default_value' => variable_get('piwik_visibility_roles', 0),
+  );
+
+  $role_options = array_map('check_plain', user_roles());
+  $form['tracking']['role_vis_settings']['piwik_roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Roles'),
+    '#default_value' => variable_get('piwik_roles', array()),
+    '#options' => $role_options,
+    '#description' => t('If none of the roles are selected, all users will be tracked. If a user has any of the roles checked, that user will be tracked (or excluded, depending on the setting above).'),
+  );
+
+  // Standard tracking configurations.
+  $form['tracking']['user_vis_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Users'),
+  );
+  $t_permission = array('%permission' => t('opt-in or out of tracking'));
+  $form['tracking']['user_vis_settings']['piwik_custom'] = array(
+    '#type' => 'radios',
+    '#title' => t('Allow users to customize tracking on their account page'),
+    '#options' => array(
+      t('No customization allowed'),
+      t('Tracking on by default, users with %permission permission can opt out', $t_permission),
+      t('Tracking off by default, users with %permission permission can opt in', $t_permission)
+    ),
+    '#default_value' => variable_get('piwik_custom', 0),
+  );
 
   // Link specific configurations.
   $form['tracking']['linktracking'] = array(
@@ -353,6 +380,11 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
     }
   }
 
+  // Trim some text area values.
+  $form_state['values']['piwik_pages'] = trim($form_state['values']['piwik_pages']);
+  $form_state['values']['piwik_codesnippet_before'] = trim($form_state['values']['piwik_codesnippet_before']);
+  $form_state['values']['piwik_codesnippet_after'] = trim($form_state['values']['piwik_codesnippet_after']);
+
   if (!preg_match('/^\d{1,}$/', $form_state['values']['piwik_site_id'])) {
     form_set_error('piwik_site_id', t('A valid Piwik site ID is an integer only.'));
   }
@@ -383,11 +415,6 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
   if (preg_match('/(.*)<\/?script(.*)>(.*)/i', $form_state['values']['piwik_codesnippet_after'])) {
     form_set_error('piwik_codesnippet_after', t('Do not include the &lt;script&gt; tags in the javascript code snippets.'));
   }
-
-  // Trim some text area values.
-  $form_state['values']['piwik_pages'] = trim($form_state['values']['piwik_pages']);
-  $form_state['values']['piwik_codesnippet_before'] = trim($form_state['values']['piwik_codesnippet_before']);
-  $form_state['values']['piwik_codesnippet_after'] = trim($form_state['values']['piwik_codesnippet_after']);
 }
 
 /**

@@ -22,10 +22,11 @@ function piwik_install() {
 
 function piwik_uninstall() {
   variable_del('piwik_cache');
-  variable_del('piwik_custom');
-  variable_del('piwik_custom_var');
   variable_del('piwik_codesnippet_before');
   variable_del('piwik_codesnippet_after');
+  variable_del('piwik_custom');
+  variable_del('piwik_custom_var');
+  variable_del('piwik_domain_mode');
   variable_del('piwik_js_scope');
   variable_del('piwik_last_cache');
   variable_del('piwik_page_title_hierarchy');
