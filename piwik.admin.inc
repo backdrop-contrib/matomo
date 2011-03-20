@@ -214,7 +214,8 @@ function piwik_admin_settings_form($form_state) {
 
   $form['piwik_custom_var'] = array(
     '#collapsible' => TRUE,
-    '#description' => t('You can add Piwiks <a href="!custom_var_documentation">Custom Variables</a> here. These will be added to every page that Piwik tracking code appears on. Piwik will only accept custom variables if the <em>name</em> and <em>value</em> combined are less than 64 bytes after URL encoding. Keep the names as short as possible and expect long values to get trimmed. You may use tokens in custom variable values. Global and user tokens are always available; on node pages, node tokens are also available.', array('!custom_var_documentation' => 'http://piwik.org/docs/javascript-tracking/#toc-custom-variables')),
+  	'#collapsed' => TRUE,
+    '#description' => t('You can add Piwiks <a href="!custom_var_documentation">Custom Variables</a> here. These will be added to every page that Piwik tracking code appears on. Custom variables names and values are limited to 100 characters in length each. Keep the names and values as short as possible and expect long values to get trimmed. You may use tokens in custom variable values. Global and user tokens are always available; on node pages, node tokens are also available.', array('!custom_var_documentation' => 'http://piwik.org/docs/custom-variables/')),
     '#theme' => 'piwik_admin_custom_var_table',
     '#title' => t('Custom variables'),
     '#tree' => TRUE,
@@ -237,7 +238,8 @@ function piwik_admin_settings_form($form_state) {
     $form['piwik_custom_var']['slots'][$i]['name'] = array(
       '#default_value' => !empty($piwik_custom_vars['slots'][$i]['name']) ? $piwik_custom_vars['slots'][$i]['name'] : '',
       '#description' => t('The custom variable name.'),
-      '#size' => 20,
+      '#maxlength' => 100,
+    	'#size' => 20,
       '#title' => t('Custom variable name #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
       '#type' => 'textfield',
@@ -261,8 +263,8 @@ function piwik_admin_settings_form($form_state) {
       '#title_display' => 'invisible',
       '#type' => 'select',
       '#options' => array(
-        1 => t('Visitor'),
-        //2 => t('Session'),
+        //1 => t('Visitor'),
+        2 => t('Session'),
         //3 => t('Page'),
       ),
     );
