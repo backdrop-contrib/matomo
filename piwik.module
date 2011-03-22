@@ -120,9 +120,6 @@ function piwik_page_alter(&$page) {
     // Site search tracking support.
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
       $set_custom_url = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys), 'absolute' => TRUE))));
-
-      // hook_preprocess_search_results() is not executed if search result is
-      // empty. Make sure the counter is set to 0 if there are no results.
       $set_custom_data[] = '{SiteSearch_Results: (window.piwik_search_results) ? window.piwik_search_results : 0 }';
     }
 
@@ -332,10 +329,9 @@ function piwik_cron() {
 }
 
 /**
- * Implementation of hook_preprocess_search_results().
+ * Implements hook_preprocess_search_results().
  *
- * Collects the number of search results. It need to be noted, that this
- * function is not executed if the search result is empty.
+ * Collects and adds the number of search results to the head.
  */
 function piwik_preprocess_search_results(&$variables) {
   // There is no search result $variable available that hold the number of items
