@@ -119,7 +119,7 @@ function piwik_page_alter(&$page) {
 
     // Site search tracking support.
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
-      $set_custom_url = drupal_json_encode(rawurldecode(url('search', array('query' => array('query' => $keys), 'absolute' => TRUE))));
+      $set_custom_url = drupal_json_encode(url('search', array('query' => array('query' => $keys), 'absolute' => TRUE)));
       $set_custom_data[] = '{SiteSearch_Results: (window.piwik_search_results) ? window.piwik_search_results : 0 }';
     }
 
