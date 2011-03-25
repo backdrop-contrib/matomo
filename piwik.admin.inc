@@ -214,7 +214,7 @@ function piwik_admin_settings_form($form_state) {
   $form['tracking']['privacy']['piwik_privacy_donottrack'] = array(
     '#type' => 'checkbox',
     '#title' => t('Universal web tracking opt-out'),
-    '#description' => t('If enabled and your server receives the <a href="http://donottrack.us/">Do-Not-Track</a> header from the client browser, the Piwik module will not embed any tracking code into your site. Compliance with Do Not Track could be purely voluntary, enforced by industry self-regulation, or mandated by state or federal law. Please accept your visitors privacy. If they have opt-out from tracking and advertising, you should accept their personal decision.'),
+    '#description' => t('If enabled and your Piwik server receives the <a href="http://donottrack.us/">Do-Not-Track</a> header from the client browser, the Piwik server will not track the user. Compliance with Do Not Track could be purely voluntary, enforced by industry self-regulation, or mandated by state or federal law. Please accept your visitors privacy. If they have opt-out from tracking and advertising, you should accept their personal decision.'),
     '#default_value' => variable_get('piwik_privacy_donottrack', 1),
   );
 
