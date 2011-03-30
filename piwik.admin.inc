@@ -274,6 +274,7 @@ function piwik_admin_settings_form($form_state) {
     $form['piwik_custom_var']['slots'][$i]['value'] = array(
       '#default_value' => !empty($piwik_custom_vars['slots'][$i]['value']) ? $piwik_custom_vars['slots'][$i]['value'] : '',
       '#description' => t('The custom variable value. You may use tokens in this field.'),
+      '#maxlength' => 255,
       '#title' => t('Custom variable value #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
       '#type' => 'textfield',
