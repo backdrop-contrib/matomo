@@ -79,7 +79,7 @@ Drupal.behaviors.trackingSettingsSummary = {
     $('fieldset#edit-search', context).drupalSetSummary(function (context) {
       var vals = [];
       if ($('input#edit-piwik-site-search', context).is(':checked')) {
-        vals.push('Site search');
+        vals.push(Drupal.t('Site search'));
       }
       if (!vals.length) {
         return Drupal.t('Not tracked');
@@ -90,7 +90,7 @@ Drupal.behaviors.trackingSettingsSummary = {
     $('fieldset#edit-privacy', context).drupalSetSummary(function (context) {
       var vals = [];
       if ($('input#edit-piwik-privacy-donottrack', context).is(':checked')) {
-        vals.push('Universal web tracking opt-out');
+        vals.push(Drupal.t('Universal web tracking opt-out'));
       }
       if (!vals.length) {
         return Drupal.t('No privacy');
