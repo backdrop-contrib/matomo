@@ -73,7 +73,7 @@ Drupal.behaviors.trackingSettingsSummary = {
       if (!vals.length) {
         return Drupal.t('Not tracked');
       }
-      return Drupal.t('@items tracked', {'@items' : vals.join(', ')});
+      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
     });
     
     $('fieldset#edit-search', context).drupalSetSummary(function (context) {
@@ -84,7 +84,7 @@ Drupal.behaviors.trackingSettingsSummary = {
       if (!vals.length) {
         return Drupal.t('Not tracked');
       }
-      return Drupal.t('@items tracked', {'@items' : vals.join(', ')});
+      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
     });
 
     $('fieldset#edit-privacy', context).drupalSetSummary(function (context) {
