@@ -153,8 +153,12 @@ function piwik_page_alter(&$page) {
         $custom_var_value = !empty($piwik_custom_vars['slots'][$i]['value']) ? $piwik_custom_vars['slots'][$i]['value'] : '';
         $custom_var_scope = !empty($piwik_custom_vars['slots'][$i]['scope']) ? $piwik_custom_vars['slots'][$i]['scope'] : 1;
 
+        $types = array();
         $node = menu_get_object();
-        $custom_var_value = token_replace($custom_var_value, array('node' => $node), array('clear' => TRUE));
+        if (is_object($node)) {
+          $types += array('node' => $node);
+        }
+        $custom_var_value = token_replace($custom_var_value, $types, array('clear' => TRUE));
 
         // Suppress empty custom variables.
         if (!is_numeric($custom_var_value) && empty($custom_var_value)) {
