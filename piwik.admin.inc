@@ -285,15 +285,14 @@ function piwik_admin_settings_form($form_state) {
       $form['piwik_custom_var']['slots'][$i]['value']['#element_validate'][] = 'token_element_validate';
     }
     $form['piwik_custom_var']['slots'][$i]['scope'] = array(
-      '#default_value' => !empty($piwik_custom_vars['slots'][$i]['scope']) ? $piwik_custom_vars['slots'][$i]['scope'] : 1,
+      '#default_value' => !empty($piwik_custom_vars['slots'][$i]['scope']) ? $piwik_custom_vars['slots'][$i]['scope'] : 'visit',
       '#description' => t('The scope for the custom variable.'),
       '#title' => t('Custom variable slot #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
       '#type' => 'select',
       '#options' => array(
-        //1 => t('Visitor'),
-        2 => t('Session'),
-        //3 => t('Page'),
+        'page' => t('Page'),
+    		'visit' => t('Visit'),
       ),
     );
   }
