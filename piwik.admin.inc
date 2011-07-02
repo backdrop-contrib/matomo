@@ -292,7 +292,7 @@ function piwik_admin_settings_form($form_state) {
       '#type' => 'select',
       '#options' => array(
         'page' => t('Page'),
-    		'visit' => t('Visit'),
+        'visit' => t('Visit'),
       ),
     );
   }
