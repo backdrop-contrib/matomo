@@ -291,8 +291,8 @@ function piwik_admin_settings_form($form_state) {
       '#title_display' => 'invisible',
       '#type' => 'select',
       '#options' => array(
-        'page' => t('Page'),
         'visit' => t('Visit'),
+        'page' => t('Page'),
       ),
     );
   }
