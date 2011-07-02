@@ -174,6 +174,7 @@ function piwik_page_alter(&$page) {
 
         $custom_var_name = drupal_json_encode($custom_var_name);
         $custom_var_value = drupal_json_encode($custom_var_value);
+        $custom_var_scope = drupal_json_encode($custom_var_scope);
         $custom_variable .= "_paq.push(['setCustomVariable', $i, $custom_var_name, $custom_var_value, $custom_var_scope]);";
       }
     }
