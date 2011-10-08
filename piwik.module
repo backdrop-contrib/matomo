@@ -129,7 +129,7 @@ function piwik_page_alter(&$page) {
       // Check we have a node object, it supports translation, and its
       // translated node ID (tnid) doesn't match its own node ID.
       $node = menu_get_object();
-      if ($node && translation_supported_type($node->type) && isset($node->tnid) && ($node->tnid != $node->nid)) {
+      if ($node && translation_supported_type($node->type) && !empty($node->tnid) && ($node->tnid != $node->nid)) {
         $source_node = node_load($node->tnid);
         $languages = language_list();
         $set_custom_url = drupal_json_encode(url('node/' . $source_node->nid, array('language' => $languages[$source_node->language], 'absolute' => TRUE)));
