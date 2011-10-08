@@ -67,7 +67,7 @@ Drupal.behaviors.trackingSettingsSummary = {
     $('fieldset#edit-linktracking', context).drupalSetSummary(function (context) {
       var vals = [];
       if ($('input#edit-piwik-track', context).is(':checked')) {
-        vals.push(Drupal.t('Outgoing links'));
+        vals.push(Drupal.t('Outbound links'));
         vals.push(Drupal.t('Downloads'));
       }
       if (!vals.length) {
