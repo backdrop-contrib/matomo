@@ -274,6 +274,19 @@ function piwik_page_alter(&$page) {
 }
 
 /**
+ * Implements hook_field_extra_fields().
+ */
+function piwik_field_extra_fields() {
+  $extra['user']['user']['form']['piwik'] = array(
+      'label' => t('Piwik configuration'),
+      'description' => t('Piwik module form element.'),
+      'weight' => 3,
+  );
+
+  return $extra;
+}
+
+/**
  * Implement hook_form_FORM_ID_alter().
  *
  * Allow users to decide if tracking code will be added to pages or not.
