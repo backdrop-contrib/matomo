@@ -117,12 +117,6 @@ function piwik_page_alter(&$page) {
       }
     }
 
-    // Site search tracking support.
-    if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
-      $set_custom_url = drupal_json_encode(url('search', array('query' => array('query' => $keys), 'absolute' => TRUE)));
-      $set_custom_data[] = '{SiteSearch_Results: (window.piwik_search_results) ? window.piwik_search_results : 0 }';
-    }
-
     // If this node is a translation of another node, pass the original
     // node instead.
     if (module_exists('translation') && variable_get('piwik_translation_set', 0)) {
@@ -189,6 +183,15 @@ function piwik_page_alter(&$page) {
     $script .= 'var u=(("https:" == document.location.protocol) ? "' . check_url($url_https) . '" : "' . check_url($url_http) . '");';
     $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('piwik_site_id', '')) . ']);';
     $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
+
+    // Site search tracking support.
+    if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
+      // Parameters:
+      // 1. Search keyword searched for. Example: "Banana"
+      // 2. Search category selected in your search engine. If you do not need this, set to false. Example: "Organic Food"
+      // 3. Number of results on the Search results page. Zero indicates a 'No Result Search Keyword'. Set to false if you don't know.
+      $script .= '_paq.push(["trackSiteSearch", ' . drupal_json_encode($keys) . ', false, (window.piwik_search_results) ? window.piwik_search_results : 0]);';
+    }
 
     // Set custom data.
     if (!empty($set_custom_data)) {
