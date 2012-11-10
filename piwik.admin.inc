@@ -371,16 +371,20 @@ function piwik_admin_settings_form($form_state) {
 function piwik_admin_settings_form_validate($form, &$form_state) {
   // Custom variables validation.
   foreach ($form_state['values']['piwik_custom_var']['slots'] as $custom_var) {
+    $form_state['values']['piwik_custom_var']['slots'][$custom_var['slot']]['name'] = trim($custom_var['name']);
+    $form_state['values']['piwik_custom_var']['slots'][$custom_var['slot']]['value'] = trim($custom_var['value']);
+
     // Validate empty names/values.
     if (empty($custom_var['name']) && !empty($custom_var['value'])) {
-      form_set_error("piwik_custom_var][slots][" . $custom_var['slot'] . "][name", t('The custom variable @slot-number requires a <em>Value</em> if a <em>Name</em> has been provided.', array('@slot-number' =>  $custom_var['slot'])));
+      form_set_error("piwik_custom_var][slots][" . $custom_var['slot'] . "][name", t('The custom variable @slot-number requires a <em>Name</em> if a <em>Value</em> has been provided.', array('@slot-number' => $custom_var['slot'])));
     }
     elseif (!empty($custom_var['name']) && empty($custom_var['value'])) {
-      form_set_error("piwik_custom_var][slots][" . $custom_var['slot'] . "][value", t('The custom variable @slot-number requires a <em>Name</em> if a <em>Value</em> has been provided.', array('@slot-number' =>  $custom_var['slot'])));
+      form_set_error("piwik_custom_var][slots][" . $custom_var['slot'] . "][value", t('The custom variable @slot-number requires a <em>Value</em> if a <em>Name</em> has been provided.', array('@slot-number' => $custom_var['slot'])));
     }
   }
 
   // Trim some text area values.
+  $form_state['values']['piwik_site_id'] = trim($form_state['values']['piwik_site_id']);
   $form_state['values']['piwik_pages'] = trim($form_state['values']['piwik_pages']);
   $form_state['values']['piwik_codesnippet_before'] = trim($form_state['values']['piwik_codesnippet_before']);
   $form_state['values']['piwik_codesnippet_after'] = trim($form_state['values']['piwik_codesnippet_after']);
