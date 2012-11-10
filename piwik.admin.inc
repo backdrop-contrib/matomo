@@ -304,6 +304,7 @@ function piwik_admin_settings_form($form_state) {
   $form['piwik_custom_var']['piwik_custom_var_token_tree'] = array(
     '#theme' => 'token_tree',
     '#token_types' => array('node'),
+    '#dialog' => TRUE,
   );
 
   // Advanced feature configurations.
