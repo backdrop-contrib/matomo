@@ -152,19 +152,20 @@ function piwik_page_alter(&$page) {
         if (is_object($node)) {
           $types += array('node' => $node);
         }
+        $custom_var_name = token_replace($custom_var_name, $types, array('clear' => TRUE));
         $custom_var_value = token_replace($custom_var_value, $types, array('clear' => TRUE));
 
-        // Suppress empty custom variables.
-        if (!is_numeric($custom_var_value) && empty($custom_var_value)) {
+        // Suppress empty custom names and/or variables.
+        if (!drupal_strlen(trim($custom_var_name)) || !drupal_strlen(trim($custom_var_value))) {
           continue;
         }
 
-        // Custom variables names and values are limited to 100 characters in
-        // length each. It is recommended to store values that are as small as
+        // Custom variables names and values are limited to 200 characters in
+        // length. It is recommended to store values that are as small as
         // possible to ensure that the Piwik Tracking request URL doesn't go
         // over the URL limit for the webserver or browser.
-        $custom_var_name = rtrim(substr($custom_var_name, 0, 100));
-        $custom_var_value = rtrim(substr($custom_var_value, 0, 100));
+        $custom_var_name = rtrim(substr($custom_var_name, 0, 200));
+        $custom_var_value = rtrim(substr($custom_var_value, 0, 200));
 
         $custom_var_name = drupal_json_encode($custom_var_name);
         $custom_var_value = drupal_json_encode($custom_var_value);

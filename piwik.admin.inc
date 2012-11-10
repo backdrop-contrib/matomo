@@ -242,7 +242,7 @@ function piwik_admin_settings_form($form_state) {
   $form['piwik_custom_var'] = array(
     '#collapsible' => TRUE,
   	'#collapsed' => TRUE,
-    '#description' => t('You can add Piwiks <a href="!custom_var_documentation">Custom Variables</a> here. These will be added to every page that Piwik tracking code appears on. Custom variables names and values are limited to 100 characters in length each. Keep the names and values as short as possible and expect long values to get trimmed. You may use tokens in custom variable values. Global and user tokens are always available; on node pages, node tokens are also available.', array('!custom_var_documentation' => 'http://piwik.org/docs/custom-variables/')),
+    '#description' => t('You can add Piwiks <a href="!custom_var_documentation">Custom Variables</a> here. These will be added to every page that Piwik tracking code appears on. Custom variable names and values are limited to 200 characters in length. Keep the names and values as short as possible and expect long values to get trimmed. You may use tokens in custom variable names and values. Global and user tokens are always available; on node pages, node tokens are also available.', array('!custom_var_documentation' => 'http://piwik.org/docs/custom-variables/')),
     '#theme' => 'piwik_admin_custom_var_table',
     '#title' => t('Custom variables'),
     '#tree' => TRUE,
@@ -273,7 +273,7 @@ function piwik_admin_settings_form($form_state) {
     );
     $form['piwik_custom_var']['slots'][$i]['value'] = array(
       '#default_value' => !empty($piwik_custom_vars['slots'][$i]['value']) ? $piwik_custom_vars['slots'][$i]['value'] : '',
-      '#description' => t('The custom variable value. You may use tokens in this field.'),
+      '#description' => t('The custom variable value.'),
       '#maxlength' => 255,
       '#title' => t('Custom variable value #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
