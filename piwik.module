@@ -189,8 +189,13 @@ function piwik_page_alter(&$page) {
     if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
       // Parameters:
       // 1. Search keyword searched for. Example: "Banana"
-      // 2. Search category selected in your search engine. If you do not need this, set to false. Example: "Organic Food"
-      // 3. Number of results on the Search results page. Zero indicates a 'No Result Search Keyword'. Set to false if you don't know.
+      // 2. Search category selected in your search engine. If you do not need
+      //    this, set to false. Example: "Organic Food"
+      // 3. Number of results on the Search results page. Zero indicates a
+      //    'No Result Search Keyword'. Set to false if you don't know.
+      //
+      // hook_preprocess_search_results() is not executed if search result is
+      // empty. Make sure the counter is set to 0 if there are no results.
       $script .= '_paq.push(["trackSiteSearch", ' . drupal_json_encode($keys) . ', false, (window.piwik_search_results) ? window.piwik_search_results : 0]);';
     }
 
