@@ -47,7 +47,8 @@ function piwik_permission() {
     ),
     'use PHP for tracking visibility' => array(
       'title' => t('Use PHP for tracking visibility'),
-      'description' => t('Enter PHP code in the field for tracking visibility settings. %warning', array('%warning' => t('Warning: Give to trusted roles only; this permission has security implications.'))),
+      'description' => t('Enter PHP code in the field for tracking visibility settings.'),
+      'restrict access' => TRUE,
     ),
   );
 }
