@@ -194,8 +194,8 @@ function piwik_admin_settings_form($form_state) {
     '#title' => t('Search'),
   );
 
-  $site_search_dependencies = '<div class="admin-dependencies">';
-  $site_search_dependencies .= t('Depends on: !dependencies', array('!dependencies' => (module_exists('search') ? t('@module (<span class="admin-enabled">enabled</span>)', array('@module' => 'Search')) : t('@module (<span class="admin-disabled">disabled</span>)', array('@module' => 'Search')))));
+  $site_search_dependencies = '<div class="admin-requirements">';
+  $site_search_dependencies .= t('Requires: !module-list', array('!module-list' => (module_exists('search') ? t('@module (<span class="admin-enabled">enabled</span>)', array('@module' => 'Search')) : t('@module (<span class="admin-disabled">disabled</span>)', array('@module' => 'Search')))));
   $site_search_dependencies .= '</div>';
 
   $form['tracking']['search']['piwik_site_search'] = array(
