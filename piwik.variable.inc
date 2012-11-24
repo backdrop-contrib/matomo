@@ -17,6 +17,7 @@ function piwik_variable_info($options) {
     'required' => TRUE,
     'group' => 'piwik',
     'localize' => TRUE,
+    'multidomain' => TRUE,
     'validate callback' => 'piwik_validate_piwik_site_id',
   );
 
