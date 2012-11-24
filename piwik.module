@@ -186,20 +186,6 @@ function piwik_page_alter(&$page) {
     $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('piwik_site_id', '')) . ']);';
     $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
 
-    // Site search tracking support.
-    if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
-      // Parameters:
-      // 1. Search keyword searched for. Example: "Banana"
-      // 2. Search category selected in your search engine. If you do not need
-      //    this, set to false. Example: "Organic Food"
-      // 3. Number of results on the Search results page. Zero indicates a
-      //    'No Result Search Keyword'. Set to false if you don't know.
-      //
-      // hook_preprocess_search_results() is not executed if search result is
-      // empty. Make sure the counter is set to 0 if there are no results.
-      $script .= '_paq.push(["trackSiteSearch", ' . drupal_json_encode($keys) . ', false, (window.piwik_search_results) ? window.piwik_search_results : 0]);';
-    }
-
     // Set custom data.
     if (!empty($set_custom_data)) {
       foreach ($set_custom_data as $custom_data) {
@@ -244,7 +230,23 @@ function piwik_page_alter(&$page) {
       $script .= $codesnippet_before;
     }
 
-    $script .= '_paq.push(["trackPageView"]);';
+    // Site search tracking support.
+    // NOTE: It's recommended not to call trackPageView() on the Site Search Result page.
+    if (module_exists('search') && variable_get('piwik_site_search', FALSE) && arg(0) == 'search' && $keys = piwik_search_get_keys()) {
+      // Parameters:
+      // 1. Search keyword searched for. Example: "Banana"
+      // 2. Search category selected in your search engine. If you do not need
+      //    this, set to false. Example: "Organic Food"
+      // 3. Number of results on the Search results page. Zero indicates a
+      //    'No Result Search Keyword'. Set to false if you don't know.
+      //
+      // hook_preprocess_search_results() is not executed if search result is
+      // empty. Make sure the counter is set to 0 if there are no results.
+      $script .= '_paq.push(["trackSiteSearch", ' . drupal_json_encode($keys) . ', false, (window.piwik_search_results) ? window.piwik_search_results : 0]);';
+    }
+    else {
+      $script .= '_paq.push(["trackPageView"]);';
+    }
 
     // Add link tracking.
     if (variable_get('piwik_track', 1)) {
@@ -288,9 +290,9 @@ function piwik_page_alter(&$page) {
  */
 function piwik_field_extra_fields() {
   $extra['user']['user']['form']['piwik'] = array(
-      'label' => t('Piwik configuration'),
-      'description' => t('Piwik module form element.'),
-      'weight' => 3,
+    'label' => t('Piwik configuration'),
+    'description' => t('Piwik module form element.'),
+    'weight' => 3,
   );
 
   return $extra;
