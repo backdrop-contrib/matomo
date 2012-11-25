@@ -3,13 +3,23 @@
 /**
  * @file
  * Drupal Module: Piwik
- * Adds the required Javascript to the bottom of all your Drupal pages
- * to allow tracking by the Piwik statistics package.
+ *
+ * Adds the required Javascript to all your Drupal pages to allow tracking by
+ * the Google Analytics statistics package.
  *
  * @author: Alexander Hass <http://drupal.org/user/85918>
  */
 
-define('PK_TRACKFILES_EXTENSIONS', '7z|aac|arc|arj|asf|asx|avi|bin|csv|doc|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls|xml|z|zip');
+/**
+ * Define the default file extension list that should be tracked as download.
+ */
+define('PIWIK_TRACKFILES_EXTENSIONS', '7z|aac|arc|arj|asf|asx|avi|bin|csv|doc|exe|flv|gif|gz|gzip|hqx|jar|jpe?g|js|mp(2|3|4|e?g)|mov(ie)?|msi|msp|pdf|phps|png|ppt|qtm?|ra(m|r)?|sea|sit|tar|tgz|torrent|txt|wav|wma|wmv|wpd|xls|xml|z|zip');
+
+/**
+ * Define default path exclusion list to remove tracking from admin pages,
+ * see http://drupal.org/node/34970 for more information.
+ */
+define('PIWIK_PAGES', "admin\nadmin/*\nbatch\nnode/add*\nnode/*/*\nuser/*/*");
 
 /**
  * Implements hook_help().
@@ -202,8 +212,8 @@ function piwik_page_alter(&$page) {
     }
 
     // Custom file download extensions.
-    if ((variable_get('piwik_track', 1)) && !(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS) == PK_TRACKFILES_EXTENSIONS)) {
-      $script .= '_paq.push(["setDownloadExtensions", ' . drupal_json_encode(variable_get('piwik_trackfiles_extensions', PK_TRACKFILES_EXTENSIONS)) . ']);';
+    if ((variable_get('piwik_track', 1)) && !(variable_get('piwik_trackfiles_extensions', PIWIK_TRACKFILES_EXTENSIONS) == PIWIK_TRACKFILES_EXTENSIONS)) {
+      $script .= '_paq.push(["setDownloadExtensions", ' . drupal_json_encode(variable_get('piwik_trackfiles_extensions', PIWIK_TRACKFILES_EXTENSIONS)) . ']);';
     }
 
     // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
@@ -529,7 +539,7 @@ function _piwik_visibility_pages() {
   if (!isset($page_match)) {
 
     $visibility = variable_get('piwik_visibility_pages', 0);
-    $setting_pages = variable_get('piwik_pages', '');
+    $setting_pages = variable_get('piwik_pages', PIWIK_PAGES);
 
     // Match path if necessary.
     if (!empty($setting_pages)) {
