@@ -282,6 +282,9 @@ function piwik_page_alter(&$page) {
     if (variable_get('piwik_track', 1)) {
       $script .= '_paq.push(["enableLinkTracking"]);';
     }
+    if (!empty($message_events)) {
+      $script .= $message_events;
+    }
     if (!empty($codesnippet_after)) {
       $script .= $codesnippet_after;
     }
