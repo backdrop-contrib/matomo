@@ -5,7 +5,7 @@
  * Drupal Module: Piwik
  *
  * Adds the required Javascript to all your Drupal pages to allow tracking by
- * the Google Analytics statistics package.
+ * the Piwik statistics package.
  *
  * @author: Alexander Hass <http://drupal.org/user/85918>
  */
