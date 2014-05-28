@@ -128,6 +128,26 @@ function piwik_page_alter(&$page) {
       }
     }
 
+    // Add messages tracking.
+    $message_events = '';
+    if ($message_types = variable_get('piwik_trackmessages', array())) {
+      $message_types = array_values(array_filter($message_types));
+      $status_heading = array(
+        'status' => t('Status message'),
+        'warning' => t('Warning message'),
+        'error' => t('Error message'),
+      );
+
+      foreach (drupal_get_messages(NULL, FALSE) as $type => $messages) {
+        // Track only the selected message types.
+        if (in_array($type, $message_types)) {
+          foreach ($messages as $message) {
+            $message_events .= '_paq.push(["trackEvent", ' . drupal_json_encode(t('Messages')) . ', ' . drupal_json_encode($status_heading[$type]) . ', ' . drupal_json_encode(strip_tags($message)) . ']);';
+          }
+        }
+      }
+    }
+
     // If this node is a translation of another node, pass the original
     // node instead.
     if (module_exists('translation') && variable_get('piwik_translation_set', 0)) {
