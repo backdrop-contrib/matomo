@@ -143,10 +143,10 @@ function piwik_page_alter(&$page) {
 
     // Track access denied (403) and file not found (404) pages.
     if ($status == '403 Forbidden') {
-      $set_document_title = '"403/URL = " + String(document.location.pathname + document.location.search).replace(/\//g,"%2f") + "/From = " + String(document.referrer).replace(/\//g,"%2f")';
+      $set_document_title = '"403/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
     }
     elseif ($status == '404 Not Found') {
-      $set_document_title = '"404/URL = " + String(document.location.pathname + document.location.search).replace(/\//g,"%2f") + "/From = " + String(document.referrer).replace(/\//g,"%2f")';
+      $set_document_title = '"404/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
     }
 
     // Add custom variables.
