@@ -187,6 +187,15 @@ function piwik_admin_settings_form($form_state) {
     '#default_value' => variable_get('piwik_trackfiles_extensions', PIWIK_TRACKFILES_EXTENSIONS),
     '#description' => t('A file extension list separated by the | character that will be tracked when clicked. Regular expressions are supported. For example: !extensions', array('!extensions' => PIWIK_TRACKFILES_EXTENSIONS)),
     '#maxlength' => 255,
+    '#states' => array(
+      'enabled' => array(
+        ':input[name="piwik_track"]' => array('checked' => TRUE),
+      ),
+      # Note: Form required marker is not visible as title is invisible.
+      'required' => array(
+        ':input[name="piwik_track"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 
   // Message specific configurations.
