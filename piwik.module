@@ -98,7 +98,7 @@ function piwik_page_alter(&$page) {
   // 1. Check if the piwik account number has a value.
   // 2. Track page views based on visibility value.
   // 3. Check if we should track the currently active user's role.
-  if (!empty($id) && (_piwik_visibility_pages() || in_array($status, $trackable_status_codes)) && _piwik_visibility_user($user)) {
+  if (preg_match('/^\d{1,}$/', $id) && (_piwik_visibility_pages() || in_array($status, $trackable_status_codes)) && _piwik_visibility_user($user)) {
 
     $url_http = variable_get('piwik_url_http', '');
     $url_https = variable_get('piwik_url_https', '');
@@ -107,6 +107,8 @@ function piwik_page_alter(&$page) {
     $set_custom_url = '';
     $set_document_title = '';
     $set_custom_data = array();
+
+    drupal_add_js(drupal_get_path('module', 'piwik') . '/piwik.js');
 
     // Piwik can show a tree view of page titles that represents the site structure
     // if setDocumentTitle() provides the page titles as a "/" delimited list.
