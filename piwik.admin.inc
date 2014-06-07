@@ -175,6 +175,11 @@ function piwik_admin_settings_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Links and downloads'),
   );
+  $form['tracking']['linktracking']['piwik_trackmailto'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Track clicks on mailto links'),
+    '#default_value' => variable_get('piwik_trackmailto', 1),
+  );
   $form['tracking']['linktracking']['piwik_track'] = array(
     '#type' => 'checkbox',
     '#title' => t('Track clicks on outbound links and downloads (clicks on file links) for the following extensions'),
@@ -384,12 +389,12 @@ function piwik_admin_settings_form($form_state) {
   $form['advanced']['piwik_js_scope'] = array(
     '#type' => 'select',
     '#title' => t('JavaScript scope'),
-    '#description' => t("<strong>Warning:</strong> Adding the external JavaScript files to the footer region is recommended for performance reasons."),
+    '#description' => t("Piwik recommends adding the tracking code to the header for performance reasons."),
     '#options' => array(
       'footer' => t('Footer'),
       'header' => t('Header'),
     ),
-    '#default_value' => variable_get('piwik_js_scope', 'footer'),
+    '#default_value' => variable_get('piwik_js_scope', 'header'),
   );
 
   return system_settings_form($form);

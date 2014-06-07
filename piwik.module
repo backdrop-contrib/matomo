@@ -102,12 +102,17 @@ function piwik_page_alter(&$page) {
 
     $url_http = variable_get('piwik_url_http', '');
     $url_https = variable_get('piwik_url_https', '');
-    $scope = variable_get('piwik_js_scope', 'footer');
+    $scope = variable_get('piwik_js_scope', 'header');
 
     $set_custom_url = '';
     $set_document_title = '';
     $set_custom_data = array();
 
+    // Add link tracking.
+    $link_settings = array();
+    $link_settings['trackMailto'] = variable_get('piwik_trackmailto', 1);
+
+    drupal_add_js(array('piwik' => $link_settings), 'setting');
     drupal_add_js(drupal_get_path('module', 'piwik') . '/piwik.js');
 
     // Piwik can show a tree view of page titles that represents the site structure
@@ -282,8 +287,20 @@ function piwik_page_alter(&$page) {
 
     // Add link tracking.
     if (variable_get('piwik_track', 1)) {
+      // Disable tracking of links with ".no-tracking" and ".colorbox" classes.
+      $ignore_classes = array(
+        'no-tracking',
+        'colorbox',
+      );
+      // Disable the download & outlink tracking for specific CSS classes.
+      // Custom code snippets with 'setIgnoreClasses' will override the value.
+      // http://developer.piwik.org/api-reference/tracking-javascript#disable-the-download-amp-outlink-tracking-for-specific-css-classes
+      $script .= '_paq.push(["setIgnoreClasses", ' . drupal_json_encode($ignore_classes) . ']);';
+
+      // Enable download & outlink link tracking.
       $script .= '_paq.push(["enableLinkTracking"]);';
     }
+
     if (!empty($message_events)) {
       $script .= $message_events;
     }

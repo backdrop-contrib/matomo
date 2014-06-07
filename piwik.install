@@ -36,6 +36,7 @@ function piwik_uninstall() {
   variable_del('piwik_roles');
   variable_del('piwik_site_id');
   variable_del('piwik_site_search');
+  variable_del('piwik_trackmailto');
   variable_del('piwik_track'); // interrims solution
   variable_del('piwik_trackfiles_extensions');
   variable_del('piwik_trackmessages');
