@@ -459,6 +459,9 @@ class PiwikPhpFilterTest extends DrupalWebTestCase {
 
     $edit = array();
     $edit['piwik_site_id'] = $ua_code;
+    $edit['piwik_url_http'] = 'http://example.com/piwik/';
+    $edit['piwik_url_https'] = 'https://example.com/piwik/';
+    $edit['piwik_url_skiperror'] = TRUE; // Required for testing only.
     $edit['piwik_visibility_pages'] = 2;
     $edit['piwik_pages'] = '<?php return 0; ?>';
     $this->drupalPost('admin/config/system/piwik', $edit, t('Save configuration'));
@@ -494,7 +497,10 @@ class PiwikPhpFilterTest extends DrupalWebTestCase {
     variable_set('piwik_pages', '<?php return 0; ?>');
 
     $edit = array();
-    $edit['piwik_account'] = $ua_code;
+    $edit['piwik_site_id'] = $ua_code;
+    $edit['piwik_url_http'] = 'http://example.com/piwik/';
+    $edit['piwik_url_https'] = 'https://example.com/piwik/';
+    $edit['piwik_url_skiperror'] = TRUE; // Required for testing only.
     $this->drupalPost('admin/config/system/piwik', $edit, t('Save configuration'));
 
     // Compare saved setting with posted setting.

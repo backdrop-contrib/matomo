@@ -40,6 +40,11 @@ function piwik_admin_settings_form($form_state) {
     '#maxlength' => 255,
     '#description' => t('The URL to your Piwik base directory with SSL certificate installed. Required if you track a SSL enabled website. Example: "https://www.example.com/piwik/".'),
   );
+  // Required for automated form save testing only.
+  $form['account']['piwik_url_skiperror'] = array(
+    '#type' => 'hidden',
+    '#default_value' => FALSE,
+  );
 
   // Visibility settings.
   $form['tracking_title'] = array(
@@ -94,8 +99,8 @@ function piwik_admin_settings_form($form_state) {
 
   if ($visibility == 2 && !$php_access) {
     $form['tracking']['page_vis_settings'] = array();
-    $form['tracking']['page_vis_settings']['visibility'] = array('#type' => 'value', '#value' => 2);
-    $form['tracking']['page_vis_settings']['pages'] = array('#type' => 'value', '#value' => $pages);
+    $form['tracking']['page_vis_settings']['piwik_visibility_pages'] = array('#type' => 'value', '#value' => 2);
+    $form['tracking']['page_vis_settings']['piwik_pages'] = array('#type' => 'value', '#value' => $pages);
   }
   else {
     $options = array(
@@ -438,7 +443,7 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
   }
   $url = $piwik_url . 'piwik.php';
   $result = drupal_http_request($url);
-  if ($result->code != 200) {
+  if ($result->code != 200 && $form_state['values']['piwik_url_skiperror'] == FALSE) {
     form_set_error('piwik_url_http', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
   }
 
@@ -450,7 +455,7 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
     }
     $url = $piwik_url . 'piwik.php';
     $result = drupal_http_request($url);
-    if ($result->code != 200) {
+    if ($result->code != 200 && $form_state['values']['piwik_url_skiperror'] == FALSE) {
       form_set_error('piwik_url_https', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
     }
   }
