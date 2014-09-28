@@ -432,7 +432,7 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
   }
 
   $piwik_url = $form_state['values']['piwik_url_http'];
-  if('/' != drupal_substr($piwik_url, -1, 1)) {
+  if ('/' != drupal_substr($piwik_url, -1, 1)) {
     $piwik_url = $piwik_url . '/';
     $form_state['values']['piwik_url_http'] = $piwik_url;
   }
@@ -444,7 +444,7 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
 
   if (!empty($form_state['values']['piwik_url_https'])) {
     $piwik_url = $form_state['values']['piwik_url_https'];
-    if('/' != drupal_substr($piwik_url, -1, 1)) {
+    if ('/' != drupal_substr($piwik_url, -1, 1)) {
       $piwik_url = $piwik_url . '/';
       $form_state['values']['piwik_url_https'] = $piwik_url;
     }
