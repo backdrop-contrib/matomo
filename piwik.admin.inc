@@ -169,6 +169,12 @@ function piwik_admin_settings_form($form_state) {
     ),
     '#default_value' => variable_get('piwik_custom', 0),
   );
+  $form['tracking']['user_vis_settings']['piwik_trackuserid'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Track User ID'),
+    '#default_value' => variable_get('piwik_trackuserid', 0),
+    '#description' => t('User ID enables the analysis of groups of sessions, across devices, using a unique, persistent, and non-personally identifiable ID string representing a user. <a href="@url">Learn more about the benefits of using User ID</a>.', array('@url' => 'http://piwik.org/docs/user-id/')),
+  );
 
   // Link specific configurations.
   $form['tracking']['linktracking'] = array(

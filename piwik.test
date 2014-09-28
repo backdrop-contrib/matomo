@@ -127,6 +127,16 @@ class PiwikBasicTest extends DrupalWebTestCase {
     $this->drupalGet('');
     $this->assertRaw('u+"piwik.php"', '[testPiwikTrackingCode]: Latest tracking code used.');
 
+    // Test if tracking of User ID is enabled.
+    variable_set('piwik_trackuserid', 1);
+    $this->drupalGet('');
+    $this->assertRaw('_paq.push(["setUserId", ', '[testPiwikTrackingCode]: Tracking code for User ID is enabled.');
+
+    // Test if tracking of User ID is disabled.
+    variable_set('piwik_trackuserid', 0);
+    $this->drupalGet('');
+    $this->assertNoRaw('_paq.push(["setUserId", ', '[testPiwikTrackingCode]: Tracking code for User ID is disabled.');
+
     // Test whether single domain tracking is active.
     $this->drupalGet('');
     $this->assertNoRaw('_paq.push(["setCookieDomain"', '[testPiwikTrackingCode]: Single domain tracking is active.');
