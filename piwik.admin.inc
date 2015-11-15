@@ -476,6 +476,12 @@ function piwik_admin_settings_form_validate($form, &$form_state) {
 
 /**
  * Layout for the custom variables table in the admin settings form.
+ *
+ * @param array $variables
+ *   An array contains the form elements.
+ *
+ * @return string
+ *   The rendered output.
  */
 function theme_piwik_admin_custom_var_table($variables) {
   $form = $variables['form'];
@@ -537,6 +543,13 @@ function piwik_token_element_validate(&$element, &$form_state) {
   return $element;
 }
 
+/**
+ * @param array $value
+ *   An array of token values.
+ *
+ * @return array
+ *   A unique array of invalid tokens.
+ */
 function _piwik_get_forbidden_tokens($value) {
   $invalid_tokens = array();
   $value_tokens = is_string($value) ? token_scan($value) : $value;
@@ -554,8 +567,9 @@ function _piwik_get_forbidden_tokens($value) {
 /**
  * Validate if a string contains forbidden tokens not allowed by privacy rules.
  *
- * @param $token_string
+ * @param string $token_string
  *   A string with one or more tokens to be validated.
+ *
  * @return boolean
  *   TRUE if blacklisted token has been found, otherwise FALSE.
  */
