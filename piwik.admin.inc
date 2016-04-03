@@ -214,6 +214,18 @@ function piwik_admin_settings_form($form_state) {
     ),
   );
 
+  $colorbox_dependencies = '<div class="admin-requirements">';
+  $colorbox_dependencies .= t('Requires: !module-list', array('!module-list' => (module_exists('colorbox') ? t('@module (<span class="admin-enabled">enabled</span>)', array('@module' => 'Colorbox')) : t('@module (<span class="admin-disabled">disabled</span>)', array('@module' => 'Colorbox')))));
+  $colorbox_dependencies .= '</div>';
+
+  $form['tracking']['linktracking']['piwik_trackcolorbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Track content in colorbox modal dialogs'),
+    '#default_value' => variable_get('piwik_trackcolorbox', 1),
+    '#description' => t('Enable to track the content shown in colorbox modal windows.') . $colorbox_dependencies,
+    '#disabled' => (module_exists('colorbox') ? FALSE : TRUE),
+  );
+
   // Message specific configurations.
   $form['tracking']['messagetracking'] = array(
     '#type' => 'fieldset',

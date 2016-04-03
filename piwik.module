@@ -112,6 +112,10 @@ function piwik_page_alter(&$page) {
     $link_settings = array();
     $link_settings['trackMailto'] = variable_get('piwik_trackmailto', 1);
 
+    if (module_exists('colorbox') && ($track_colorbox = variable_get('googleanalytics_trackcolorbox', 1))) {
+      $link_settings['trackColorbox'] = $track_colorbox;
+    }
+
     drupal_add_js(array('piwik' => $link_settings), 'setting');
     drupal_add_js(drupal_get_path('module', 'piwik') . '/piwik.js');
 
