@@ -68,10 +68,10 @@ function piwik_requirements($phase) {
   $t = get_t();
 
   switch ($phase) {
-    case 'runtime' :
+    case 'runtime':
       // Module cannot validate piwik URL without external HTTP requests.
       if (variable_get('drupal_http_request_fails', TRUE) && !system_check_http_request()) {
-        $requirements['http requests'] = array(
+        $requirements['piwik_http_requests'] = array(
           'title' => $t('HTTP request status'),
           'value' => $t('Fails'),
           'severity' => REQUIREMENT_ERROR,
