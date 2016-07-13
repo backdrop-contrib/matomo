@@ -235,7 +235,7 @@ function piwik_admin_settings_form($form_state) {
     '#type' => 'checkboxes',
     '#title' => t('Track messages of type'),
     '#default_value' => variable_get('piwik_trackmessages', array()),
-    '#description' => t('This will track the selected message types shown to users. Tracking of form validation errors may help you identifying usability issues in your site. Every message is tracked as one individual event. Messages from excluded pages cannot tracked.'),
+    '#description' => t('This will track the selected message types shown to users. Tracking of form validation errors may help you identifying usability issues in your site. Every message is tracked as one individual event. Messages from excluded pages cannot be tracked.'),
     '#options' => array(
       'status' => t('Status message'),
       'warning' => t('Warning message'),
