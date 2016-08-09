@@ -60,6 +60,11 @@ function piwik_permission() {
       'description' => t('Enter PHP code in the field for tracking visibility settings.'),
       'restrict access' => TRUE,
     ),
+    'add JS snippets for piwik' => array(
+      'title' => t('Add JavaScript snippets'),
+      'description' => 'Enter JavaScript code snippets for advanced Piwik functionality.',
+      'restrict access' => TRUE,
+    ),
   );
 }
 
