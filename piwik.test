@@ -107,13 +107,15 @@ class PiwikBasicTest extends DrupalWebTestCase {
     // Enable tracking code for all user roles.
     variable_set('piwik_roles', array());
 
+    $base_path = base_path();
+
     // Test whether 403 forbidden tracking code is shown if user has no access.
     $this->drupalGet('admin');
-    $this->assertRaw('"403/URL = "', '[testPiwikPageVisibility]: 403 Forbidden tracking code shown if user has no access.');
+    $this->assertRaw('"' . $base_path . '403/URL = "', '[testPiwikPageVisibility]: 403 Forbidden tracking code shown if user has no access.');
 
     // Test whether 404 not found tracking code is shown on non-existent pages.
     $this->drupalGet($this->randomName(64));
-    $this->assertRaw('"404/URL = "', '[testPiwikPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
+    $this->assertRaw('"' . $base_path . '404/URL = "', '[testPiwikPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
   }
 
   function testPiwikTrackingCode() {
