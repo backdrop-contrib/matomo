@@ -310,6 +310,51 @@ class PiwikCustomVariablesTest extends DrupalWebTestCase {
   }
 }
 
+/**
+ * Test custom url functionality of Google Analytics module.
+ */
+class PiwikCustomUrls extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Piwik custom url tests',
+      'description' => 'Test custom url functionality of Piwik module.',
+      'group' => 'Piwik',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('piwik');
+
+    $permissions = array(
+      'access administration pages',
+      'administer piwik',
+    );
+
+    // User to set up google_analytics.
+    $this->admin_user = $this->drupalCreateUser($permissions);
+  }
+
+  /**
+   * Tests if user password page urls are overridden.
+   */
+  public function testGoogleAnalyticsUserPasswordPage() {
+    $base_path = base_path();
+    $ua_code = '1';
+    variable_set('piwik_site_id', $ua_code);
+
+    $this->drupalGet('user/password', array('query' => array('name' => 'foo')));
+    $this->assertRaw('ga("set", "page", "' . $base_path . 'user/password"');
+
+    $this->drupalGet('user/password', array('query' => array('name' => 'foo@example.com')));
+    $this->assertRaw('ga("set", "page", "' . $base_path . 'user/password"');
+
+    $this->drupalGet('user/password');
+    $this->assertNoRaw('ga("set", "page",', '[testGoogleAnalyticsCustomUrls]: Custom url not set.');
+  }
+
+}
+
 class PiwikStatusMessagesTest extends DrupalWebTestCase {
 
   public static function getInfo() {

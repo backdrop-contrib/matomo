@@ -89,7 +89,7 @@ function piwik_menu() {
  * Implements hook_page_alter() to insert JavaScript to the appropriate scope/region of the page.
  */
 function piwik_page_alter(&$page) {
-  global $user;
+  global $base_path, $user;
 
   $id = variable_get('piwik_site_id', '');
 
@@ -186,6 +186,18 @@ function piwik_page_alter(&$page) {
     }
     elseif ($status == '404 Not Found') {
       $set_document_title = '"404/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
+    }
+
+    // #2693595: User has entered an invalid login and clicked on forgot
+    // password link. This link contains the username or email address and may
+    // get send to Google if we do not override it. Override only if 'name'
+    // query param exists. Last custom url condition, this need to win.
+    //
+    // URLs to protect are:
+    // - user/password?name=username
+    // - user/password?name=foo@example.com
+    if (arg(0) == 'user' && arg(1) == 'password' && array_key_exists('name', drupal_get_query_parameters())) {
+      $set_custom_url = drupal_json_encode(url('user/password'));
     }
 
     // Add custom variables.
