@@ -346,10 +346,10 @@ class PiwikCustomUrls extends DrupalWebTestCase {
     variable_get('piwik_url_https', 'https://example.com/piwik/');
 
     $this->drupalGet('user/password', array('query' => array('name' => 'foo')));
-    $this->assertRaw('_paq.push(["setCustomUrl", ' . drupal_json_encode($base_path . 'user/password') . ']);');
+    $this->assertRaw('_paq.push(["setCustomUrl", ' . drupal_json_encode(url('user/password')) . ']);');
 
     $this->drupalGet('user/password', array('query' => array('name' => 'foo@example.com')));
-    $this->assertRaw('_paq.push(["setCustomUrl", ' . drupal_json_encode($base_path . 'user/password') . ']);');
+    $this->assertRaw('_paq.push(["setCustomUrl", ' . drupal_json_encode(url('user/password')) . ']);');
 
     $this->drupalGet('user/password');
     $this->assertNoRaw('_paq.push(["setCustomUrl", "', '[testPiwikCustomUrls]: Custom url not set.');
