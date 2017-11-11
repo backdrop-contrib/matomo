@@ -107,15 +107,13 @@ class PiwikBasicTest extends DrupalWebTestCase {
     // Enable tracking code for all user roles.
     variable_set('piwik_roles', array());
 
-    $base_path = base_path();
-
     // Test whether 403 forbidden tracking code is shown if user has no access.
     $this->drupalGet('admin');
-    $this->assertRaw('"' . $base_path . '403/URL = "', '[testPiwikPageVisibility]: 403 Forbidden tracking code shown if user has no access.');
+    $this->assertRaw('403/URL = "', '[testPiwikPageVisibility]: 403 Forbidden tracking code shown if user has no access.');
 
     // Test whether 404 not found tracking code is shown on non-existent pages.
     $this->drupalGet($this->randomName(64));
-    $this->assertRaw('"' . $base_path . '404/URL = "', '[testPiwikPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
+    $this->assertRaw('404/URL = "', '[testPiwikPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
   }
 
   function testPiwikTrackingCode() {
@@ -340,19 +338,21 @@ class PiwikCustomUrls extends DrupalWebTestCase {
   /**
    * Tests if user password page urls are overridden.
    */
-  public function testGoogleAnalyticsUserPasswordPage() {
+  public function testPiwikUserPasswordPage() {
     $base_path = base_path();
     $ua_code = '1';
     variable_set('piwik_site_id', $ua_code);
+    variable_get('piwik_url_http', 'http://example.com/piwik/');
+    variable_get('piwik_url_https', 'https://example.com/piwik/');
 
     $this->drupalGet('user/password', array('query' => array('name' => 'foo')));
-    $this->assertRaw('ga("set", "page", "' . $base_path . 'user/password"');
+    $this->assertRaw('_paq.push(["setCustomUrl", "' . $base_path . 'user/password"]);');
 
     $this->drupalGet('user/password', array('query' => array('name' => 'foo@example.com')));
-    $this->assertRaw('ga("set", "page", "' . $base_path . 'user/password"');
+    $this->assertRaw('_paq.push(["setCustomUrl", "' . $base_path . 'user/password"]);');
 
     $this->drupalGet('user/password');
-    $this->assertNoRaw('ga("set", "page",', '[testGoogleAnalyticsCustomUrls]: Custom url not set.');
+    $this->assertNoRaw('_paq.push(["setCustomUrl", "', '[testPiwikCustomUrls]: Custom url not set.');
   }
 
 }

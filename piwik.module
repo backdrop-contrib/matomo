@@ -89,7 +89,7 @@ function piwik_menu() {
  * Implements hook_page_alter() to insert JavaScript to the appropriate scope/region of the page.
  */
 function piwik_page_alter(&$page) {
-  global $base_path, $user;
+  global $user;
 
   $id = variable_get('piwik_site_id', '');
 
@@ -182,10 +182,10 @@ function piwik_page_alter(&$page) {
 
     // Track access denied (403) and file not found (404) pages.
     if ($status == '403 Forbidden') {
-      $set_document_title = '"' . $base_path . '403/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
+      $set_document_title = '403/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
     }
     elseif ($status == '404 Not Found') {
-      $set_document_title = '"' . $base_path . '404/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
+      $set_document_title = '404/URL = " + encodeURIComponent(document.location.pathname+document.location.search) + "/From = " + encodeURIComponent(document.referrer)';
     }
 
     // #2693595: User has entered an invalid login and clicked on forgot
