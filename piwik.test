@@ -331,7 +331,7 @@ class PiwikCustomUrls extends DrupalWebTestCase {
       'administer piwik',
     );
 
-    // User to set up google_analytics.
+    // User to set up piwik.
     $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
