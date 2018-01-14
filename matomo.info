@@ -1,7 +1,7 @@
-name = "Piwik Web Analytics"
-description = Adds Piwik javascript tracking code to all your site's pages.
+name = "Matomo Analytics"
+description = Adds Matomo javascript tracking code to all your site's pages.
 core = 7.x
 package = Statistics
-configure = admin/config/system/piwik
-files[] = piwik.test
+configure = admin/config/system/matomo
+files[] = matomo.test
 test_dependencies[] = token

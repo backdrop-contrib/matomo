@@ -11,7 +11,7 @@ Drupal.behaviors.trackingSettingsSummary = {
     }
 
     $('fieldset#edit-domain-tracking', context).drupalSetSummary(function (context) {
-      var $radio = $('input[name="piwik_domain_mode"]:checked', context);
+      var $radio = $('input[name="matomo_domain_mode"]:checked', context);
       if ($radio.val() == 0) {
         return Drupal.t('A single domain');
       }
@@ -21,9 +21,9 @@ Drupal.behaviors.trackingSettingsSummary = {
     });
 
     $('fieldset#edit-page-vis-settings', context).drupalSetSummary(function (context) {
-      var $radio = $('input[name="piwik_visibility_pages"]:checked', context);
+      var $radio = $('input[name="matomo_visibility_pages"]:checked', context);
       if ($radio.val() == 0) {
-        if (!$('textarea[name="piwik_pages"]', context).val()) {
+        if (!$('textarea[name="matomo_pages"]', context).val()) {
           return Drupal.t('Not restricted');
         }
         else {
@@ -43,7 +43,7 @@ Drupal.behaviors.trackingSettingsSummary = {
       if (!vals.length) {
         return Drupal.t('Not restricted');
       }
-      else if ($('input[name="piwik_visibility_roles"]:checked', context).val() == 1) {
+      else if ($('input[name="matomo_visibility_roles"]:checked', context).val() == 1) {
         return Drupal.t('Excepted: @roles', {'@roles' : vals.join(', ')});
       }
       else {
@@ -52,7 +52,7 @@ Drupal.behaviors.trackingSettingsSummary = {
     });
 
     $('fieldset#edit-user-vis-settings', context).drupalSetSummary(function (context) {
-      var $radio = $('input[name="piwik_custom"]:checked', context);
+      var $radio = $('input[name="matomo_custom"]:checked', context);
       if ($radio.val() == 0) {
         return Drupal.t('Not customizable');
       }
@@ -66,14 +66,14 @@ Drupal.behaviors.trackingSettingsSummary = {
 
     $('fieldset#edit-linktracking', context).drupalSetSummary(function (context) {
       var vals = [];
-      if ($('input#edit-piwik-trackmailto', context).is(':checked')) {
+      if ($('input#edit-matomo-trackmailto', context).is(':checked')) {
         vals.push(Drupal.t('Mailto links'));
       }
-      if ($('input#edit-piwik-track', context).is(':checked')) {
+      if ($('input#edit-matomo-track', context).is(':checked')) {
         vals.push(Drupal.t('Outbound links'));
         vals.push(Drupal.t('Downloads'));
       }
-      if ($('input#edit-piwik-trackcolorbox', context).is(':checked')) {
+      if ($('input#edit-matomo-trackcolorbox', context).is(':checked')) {
         vals.push(Drupal.t('Colorbox'));
       }
       if (!vals.length) {
@@ -95,7 +95,7 @@ Drupal.behaviors.trackingSettingsSummary = {
 
     $('fieldset#edit-search', context).drupalSetSummary(function (context) {
       var vals = [];
-      if ($('input#edit-piwik-site-search', context).is(':checked')) {
+      if ($('input#edit-matomo-site-search', context).is(':checked')) {
         vals.push(Drupal.t('Site search'));
       }
       if (!vals.length) {
@@ -106,7 +106,7 @@ Drupal.behaviors.trackingSettingsSummary = {
 
     $('fieldset#edit-privacy', context).drupalSetSummary(function (context) {
       var vals = [];
-      if ($('input#edit-piwik-privacy-donottrack', context).is(':checked')) {
+      if ($('input#edit-matomo-privacy-donottrack', context).is(':checked')) {
         vals.push(Drupal.t('Universal web tracking opt-out'));
       }
       if (!vals.length) {

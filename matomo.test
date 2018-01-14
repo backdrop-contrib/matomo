@@ -2,9 +2,9 @@
 
 /**
  * @file
- * Test file for Piwik module.
+ * Test file for Matomo module.
  */
-class PiwikBasicTest extends DrupalWebTestCase {
+class MatomoBasicTest extends DrupalWebTestCase {
 
   /**
    * User without permissions to edit snippets.
@@ -15,123 +15,123 @@ class PiwikBasicTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Piwik basic tests'),
-      'description' => t('Test basic functionality of Piwik module.'),
-      'group' => 'Piwik',
+      'name' => t('Matomo basic tests'),
+      'description' => t('Test basic functionality of Matomo module.'),
+      'group' => 'Matomo',
     );
   }
 
   function setUp() {
-    parent::setUp('piwik');
+    parent::setUp('matomo');
 
     $permissions = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
     );
 
-    // User to set up piwik.
+    // User to set up matomo.
     $this->noSnippetUser = $this->drupalCreateUser($permissions);
-    $permissions[] = 'add JS snippets for piwik';
+    $permissions[] = 'add JS snippets for matomo';
     $this->admin_user = $this->drupalCreateUser($permissions);
     $this->drupalLogin($this->admin_user);
   }
 
-  function testPiwikConfiguration() {
+  function testMatomoConfiguration() {
     // Check for setting page's presence.
-    $this->drupalGet('admin/config/system/piwik');
-    $this->assertRaw(t('Piwik site ID'), '[testPiwikConfiguration]: Settings page displayed.');
+    $this->drupalGet('admin/config/system/matomo');
+    $this->assertRaw(t('Matomo site ID'), '[testMatomoConfiguration]: Settings page displayed.');
 
     // Check for account code validation.
-    $edit['piwik_site_id'] = $this->randomName(2);
-    $this->drupalPost('admin/config/system/piwik', $edit, 'Save configuration');
-    $this->assertRaw(t('A valid Piwik site ID is an integer only.'), '[testPiwikConfiguration]: Invalid Piwik site ID number validated.');
+    $edit['matomo_site_id'] = $this->randomName(2);
+    $this->drupalPost('admin/config/system/matomo', $edit, 'Save configuration');
+    $this->assertRaw(t('A valid Matomo site ID is an integer only.'), '[testMatomoConfiguration]: Invalid Matomo site ID number validated.');
 
     // User should have access to code snippets.
-    $this->assertFieldByName('piwik_codesnippet_before');
-    $this->assertFieldByName('piwik_codesnippet_after');
-    $this->assertNoFieldByXPath("//textarea[@name='piwik_codesnippet_before' and @disabled='disabled']", NULL, '"Code snippet (before)" is enabled.');
-    $this->assertNoFieldByXPath("//textarea[@name='piwik_codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is enabled.');
+    $this->assertFieldByName('matomo_codesnippet_before');
+    $this->assertFieldByName('matomo_codesnippet_after');
+    $this->assertNoFieldByXPath("//textarea[@name='matomo_codesnippet_before' and @disabled='disabled']", NULL, '"Code snippet (before)" is enabled.');
+    $this->assertNoFieldByXPath("//textarea[@name='matomo_codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is enabled.');
 
     // Login as user without JS permissions.
     $this->drupalLogin($this->noSnippetUser);
-    $this->drupalGet('admin/config/system/piwik');
+    $this->drupalGet('admin/config/system/matomo');
 
     // User should *not* have access to snippets, but create fields.
-    $this->assertFieldByName('piwik_codesnippet_before');
-    $this->assertFieldByName('piwik_codesnippet_after');
-    $this->assertFieldByXPath("//textarea[@name='piwik_codesnippet_before' and @disabled='disabled']", NULL, '"Code snippet (before)" is disabled.');
-    $this->assertFieldByXPath("//textarea[@name='piwik_codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is disabled.');
+    $this->assertFieldByName('matomo_codesnippet_before');
+    $this->assertFieldByName('matomo_codesnippet_after');
+    $this->assertFieldByXPath("//textarea[@name='matomo_codesnippet_before' and @disabled='disabled']", NULL, '"Code snippet (before)" is disabled.');
+    $this->assertFieldByXPath("//textarea[@name='matomo_codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is disabled.');
   }
 
-  function testPiwikPageVisibility() {
+  function testMatomoPageVisibility() {
     $ua_code = '1';
-    variable_set('piwik_site_id', $ua_code);
-    variable_get('piwik_url_http', 'http://example.com/piwik/');
-    variable_get('piwik_url_https', 'https://example.com/piwik/');
+    variable_set('matomo_site_id', $ua_code);
+    variable_get('matomo_url_http', 'http://example.com/matomo/');
+    variable_get('matomo_url_https', 'https://example.com/matomo/');
 
     // Show tracking on "every page except the listed pages".
-    variable_set('piwik_visibility_pages', 0);
+    variable_set('matomo_visibility_pages', 0);
     // Disable tracking one "admin*" pages only.
-    variable_set('piwik_pages', "admin\nadmin/*");
+    variable_set('matomo_pages', "admin\nadmin/*");
     // Enable tracking only for authenticated users only.
-    variable_set('piwik_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
+    variable_set('matomo_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
 
     // Check tracking code visibility.
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is displayed for authenticated users.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is displayed for authenticated users.');
 
     // Test whether tracking code is not included on pages to omit.
     $this->drupalGet('admin');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is not displayed on admin page.');
-    $this->drupalGet('admin/config/system/piwik');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is not displayed on admin page.');
+    $this->drupalGet('admin/config/system/matomo');
     // Checking for tracking code URI here, as $ua_code is displayed in the form.
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is not displayed on admin subpage.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is not displayed on admin subpage.');
 
     // Test whether tracking code display is properly flipped.
-    variable_set('piwik_visibility_pages', 1);
+    variable_set('matomo_visibility_pages', 1);
     $this->drupalGet('admin');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is displayed on admin page.');
-    $this->drupalGet('admin/config/system/piwik');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is displayed on admin page.');
+    $this->drupalGet('admin/config/system/matomo');
     // Checking for tracking code URI here, as $ua_code is displayed in the form.
-    $this->assertRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is displayed on admin subpage.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is displayed on admin subpage.');
     $this->drupalGet('');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is NOT displayed on front page.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is NOT displayed on front page.');
 
     // Test whether tracking code is not display for anonymous.
     $this->drupalLogout();
     $this->drupalGet('');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikPageVisibility]: Tracking code is NOT displayed for anonymous.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoPageVisibility]: Tracking code is NOT displayed for anonymous.');
 
     // Switch back to every page except the listed pages.
-    variable_set('piwik_visibility_pages', 0);
+    variable_set('matomo_visibility_pages', 0);
     // Enable tracking code for all user roles.
-    variable_set('piwik_roles', array());
+    variable_set('matomo_roles', array());
 
     // Test whether 403 forbidden tracking code is shown if user has no access.
     $this->drupalGet('admin');
-    $this->assertRaw('403/URL = "', '[testPiwikPageVisibility]: 403 Forbidden tracking code shown if user has no access.');
+    $this->assertRaw('403/URL = "', '[testMatomoPageVisibility]: 403 Forbidden tracking code shown if user has no access.');
 
     // Test whether 404 not found tracking code is shown on non-existent pages.
     $this->drupalGet($this->randomName(64));
-    $this->assertRaw('404/URL = "', '[testPiwikPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
+    $this->assertRaw('404/URL = "', '[testMatomoPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
   }
 
-  function testPiwikTrackingCode() {
+  function testMatomoTrackingCode() {
     $ua_code = '2';
-    variable_set('piwik_site_id', $ua_code);
-    variable_get('piwik_url_http', 'http://example.com/piwik/');
-    variable_get('piwik_url_https', 'https://example.com/piwik/');
+    variable_set('matomo_site_id', $ua_code);
+    variable_get('matomo_url_http', 'http://example.com/matomo/');
+    variable_get('matomo_url_https', 'https://example.com/matomo/');
 
     // Show tracking code on every page except the listed pages.
-    variable_set('piwik_visibility_pages', 0);
+    variable_set('matomo_visibility_pages', 0);
     // Enable tracking code for all user roles.
-    variable_set('piwik_roles', array());
+    variable_set('matomo_roles', array());
 
     /* Sample JS code as added to page:
     <script type="text/javascript">
     var _paq = _paq || [];
     (function(){
-        var u=(("https:" == document.location.protocol) ? "https://{$PIWIK_URL}" : "http://{$PIWIK_URL}");
+        var u=(("https:" == document.location.protocol) ? "https://{$MATOMO_URL}" : "http://{$MATOMO_URL}");
         _paq.push(['setSiteId', {$IDSITE}]);
         _paq.push(['setTrackerUrl', u+'piwik.php']);
         _paq.push(['trackPageView']);
@@ -141,82 +141,82 @@ class PiwikBasicTest extends DrupalWebTestCase {
             g.type='text/javascript';
             g.defer=true;
             g.async=true;
-            g.src=u+'piwik.js';
+            g.src=u+'matomo.js';
             s.parentNode.insertBefore(g,s);
     })();
     </script>
     */
 
     // Test whether tracking code uses latest JS.
-    variable_set('piwik_cache', 0);
+    variable_set('matomo_cache', 0);
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikTrackingCode]: Latest tracking code used.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoTrackingCode]: Latest tracking code used.');
 
     // Test if tracking of User ID is enabled.
-    variable_set('piwik_trackuserid', 1);
+    variable_set('matomo_trackuserid', 1);
     $this->drupalGet('');
-    $this->assertRaw('_paq.push(["setUserId", ', '[testPiwikTrackingCode]: Tracking code for User ID is enabled.');
+    $this->assertRaw('_paq.push(["setUserId", ', '[testMatomoTrackingCode]: Tracking code for User ID is enabled.');
 
     // Test if tracking of User ID is disabled.
-    variable_set('piwik_trackuserid', 0);
+    variable_set('matomo_trackuserid', 0);
     $this->drupalGet('');
-    $this->assertNoRaw('_paq.push(["setUserId", ', '[testPiwikTrackingCode]: Tracking code for User ID is disabled.');
+    $this->assertNoRaw('_paq.push(["setUserId", ', '[testMatomoTrackingCode]: Tracking code for User ID is disabled.');
 
     // Test whether single domain tracking is active.
     $this->drupalGet('');
-    $this->assertNoRaw('_paq.push(["setCookieDomain"', '[testPiwikTrackingCode]: Single domain tracking is active.');
+    $this->assertNoRaw('_paq.push(["setCookieDomain"', '[testMatomoTrackingCode]: Single domain tracking is active.');
 
     // Enable "One domain with multiple subdomains".
-    variable_set('piwik_domain_mode', 1);
+    variable_set('matomo_domain_mode', 1);
     $this->drupalGet('');
 
     // Test may run on localhost, an ipaddress or real domain name.
     // TODO: Workaround to run tests successfully. This feature cannot tested reliable.
     global $cookie_domain;
     if (count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
-      $this->assertRaw('_paq.push(["setCookieDomain"', '[testPiwikTrackingCode]: One domain with multiple subdomains is active on real host.');
+      $this->assertRaw('_paq.push(["setCookieDomain"', '[testMatomoTrackingCode]: One domain with multiple subdomains is active on real host.');
     }
     else {
       // Special cases, Localhost and IP addresses don't show 'setCookieDomain'.
-      $this->assertNoRaw('_paq.push(["setCookieDomain"', '[testPiwikTrackingCode]: One domain with multiple subdomains may be active on localhost (test result is not reliable).');
+      $this->assertNoRaw('_paq.push(["setCookieDomain"', '[testMatomoTrackingCode]: One domain with multiple subdomains may be active on localhost (test result is not reliable).');
     }
 
     // Test whether the BEFORE and AFTER code is added to the tracker.
-    variable_set('piwik_codesnippet_before', '_paq.push(["setLinkTrackingTimer", 250]);');
-    variable_set('piwik_codesnippet_after', '_paq.push(["t2.setSiteId", 2]);_gaq.push(["t2.trackPageView"]);');
+    variable_set('matomo_codesnippet_before', '_paq.push(["setLinkTrackingTimer", 250]);');
+    variable_set('matomo_codesnippet_after', '_paq.push(["t2.setSiteId", 2]);_gaq.push(["t2.trackPageView"]);');
     $this->drupalGet('');
-    $this->assertRaw('setLinkTrackingTimer', '[testPiwikTrackingCode]: Before codesnippet has been found with "setLinkTrackingTimer" set.');
-    $this->assertRaw('t2.trackPageView', '[testPiwikTrackingCode]: After codesnippet with "t2" tracker has been found.');
+    $this->assertRaw('setLinkTrackingTimer', '[testMatomoTrackingCode]: Before codesnippet has been found with "setLinkTrackingTimer" set.');
+    $this->assertRaw('t2.trackPageView', '[testMatomoTrackingCode]: After codesnippet with "t2" tracker has been found.');
   }
 
 }
 
-class PiwikCustomVariablesTest extends DrupalWebTestCase {
+class MatomoCustomVariablesTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Piwik Custom Variables tests'),
-      'description' => t('Test custom variables functionality of Piwik module.'),
-      'group' => 'Piwik',
+      'name' => t('Matomo Custom Variables tests'),
+      'description' => t('Test custom variables functionality of Matomo module.'),
+      'group' => 'Matomo',
       'dependencies' => array('token'),
     );
   }
 
   function setUp() {
-    parent::setUp('piwik', 'token');
+    parent::setUp('matomo', 'token');
 
     $permissions = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
     );
 
-    // User to set up piwik.
+    // User to set up matomo.
     $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
-  function testPiwikCustomVariables() {
+  function testMatomoCustomVariables() {
     $ua_code = '3';
-    variable_set('piwik_site_id', $ua_code);
+    variable_set('matomo_site_id', $ua_code);
 
     // Basic test if the feature works.
     $custom_vars = array(
@@ -253,11 +253,11 @@ class PiwikCustomVariablesTest extends DrupalWebTestCase {
         ),
       )
     );
-    variable_set('piwik_custom_var', $custom_vars);
+    variable_set('matomo_custom_var', $custom_vars);
     $this->drupalGet('');
 
     foreach ($custom_vars['slots'] as $slot) {
-      $this->assertRaw("_paq.push(['setCustomVariable', " . $slot['slot'] . ", \"" . $slot['name'] . "\", \"" . $slot['value'] . "\", " . $slot['scope'] . "]);", '[testPiwikCustomVariables]: setCustomVariable ' . $slot['slot'] . ' is shown.');
+      $this->assertRaw("_paq.push(['setCustomVariable', " . $slot['slot'] . ", \"" . $slot['name'] . "\", \"" . $slot['value'] . "\", " . $slot['scope'] . "]);", '[testMatomoCustomVariables]: setCustomVariable ' . $slot['slot'] . ' is shown.');
     }
 
     // Test whether tokens are replaced in custom variable names.
@@ -298,52 +298,52 @@ class PiwikCustomVariablesTest extends DrupalWebTestCase {
         ),
       )
     );
-    variable_set('piwik_custom_var', $custom_vars);
+    variable_set('matomo_custom_var', $custom_vars);
     $this->verbose('<pre>' . print_r($custom_vars, TRUE) . '</pre>');
 
     $this->drupalGet('');
-    $this->assertRaw("_paq.push(['setCustomVariable', 1, \"Name: $site_slogan\", \"Value: $site_slogan\", 3]", '[testPiwikCustomVariables]: Tokens have been replaced in custom variable.');
-    $this->assertNoRaw("_paq.push(['setCustomVariable', 2,", '[testPiwikCustomVariables]: Value with empty name is not shown.');
-    $this->assertNoRaw("_paq.push(['setCustomVariable', 3,", '[testPiwikCustomVariables]: Name with empty value is not shown.');
-    $this->assertNoRaw("_paq.push(['setCustomVariable', 4,", '[testPiwikCustomVariables]: Empty name and value is not shown.');
-    $this->assertNoRaw("_paq.push(['setCustomVariable', 5,", '[testPiwikCustomVariables]: Empty name and value is not shown.');
+    $this->assertRaw("_paq.push(['setCustomVariable', 1, \"Name: $site_slogan\", \"Value: $site_slogan\", 3]", '[testMatomoCustomVariables]: Tokens have been replaced in custom variable.');
+    $this->assertNoRaw("_paq.push(['setCustomVariable', 2,", '[testMatomoCustomVariables]: Value with empty name is not shown.');
+    $this->assertNoRaw("_paq.push(['setCustomVariable', 3,", '[testMatomoCustomVariables]: Name with empty value is not shown.');
+    $this->assertNoRaw("_paq.push(['setCustomVariable', 4,", '[testMatomoCustomVariables]: Empty name and value is not shown.');
+    $this->assertNoRaw("_paq.push(['setCustomVariable', 5,", '[testMatomoCustomVariables]: Empty name and value is not shown.');
   }
 }
 
 /**
- * Test custom url functionality of Google Analytics module.
+ * Test custom url functionality of Matomo module.
  */
-class PiwikCustomUrls extends DrupalWebTestCase {
+class MatomoCustomUrls extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'Piwik custom url tests',
-      'description' => 'Test custom url functionality of Piwik module.',
-      'group' => 'Piwik',
+      'name' => 'Matomo custom url tests',
+      'description' => 'Test custom url functionality of Matomo module.',
+      'group' => 'Matomo',
     );
   }
 
   function setUp() {
-    parent::setUp('piwik');
+    parent::setUp('matomo');
 
     $permissions = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
     );
 
-    // User to set up piwik.
+    // User to set up matomo.
     $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
   /**
    * Tests if user password page urls are overridden.
    */
-  public function testPiwikUserPasswordPage() {
+  public function testMatomoUserPasswordPage() {
     $base_path = base_path();
     $ua_code = '1';
-    variable_set('piwik_site_id', $ua_code);
-    variable_get('piwik_url_http', 'http://example.com/piwik/');
-    variable_get('piwik_url_https', 'https://example.com/piwik/');
+    variable_set('matomo_site_id', $ua_code);
+    variable_get('matomo_url_http', 'http://example.com/matomo/');
+    variable_get('matomo_url_https', 'https://example.com/matomo/');
 
     $this->drupalGet('user/password', array('query' => array('name' => 'foo')));
     $this->assertRaw('_paq.push(["setCustomUrl", ' . drupal_json_encode(url('user/password')) . ']);');
@@ -352,43 +352,43 @@ class PiwikCustomUrls extends DrupalWebTestCase {
     $this->assertRaw('_paq.push(["setCustomUrl", ' . drupal_json_encode(url('user/password')) . ']);');
 
     $this->drupalGet('user/password');
-    $this->assertNoRaw('_paq.push(["setCustomUrl", "', '[testPiwikCustomUrls]: Custom url not set.');
+    $this->assertNoRaw('_paq.push(["setCustomUrl", "', '[testMatomoCustomUrls]: Custom url not set.');
   }
 
 }
 
-class PiwikStatusMessagesTest extends DrupalWebTestCase {
+class MatomoStatusMessagesTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'Piwik status messages tests',
-      'description' => 'Test status messages functionality of Piwik module.',
-      'group' => 'Piwik',
+      'name' => 'Matomo status messages tests',
+      'description' => 'Test status messages functionality of Matomo module.',
+      'group' => 'Matomo',
     );
   }
 
   function setUp() {
-    parent::setUp('piwik');
+    parent::setUp('matomo');
 
     $permissions = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
     );
 
-    // User to set up piwik.
+    // User to set up matomo.
     $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
-  function testPiwikStatusMessages() {
+  function testMatomoStatusMessages() {
     $ua_code = '1';
-    variable_set('piwik_site_id', $ua_code);
+    variable_set('matomo_site_id', $ua_code);
 
     // Enable logging of errors only.
-    variable_set('piwik_trackmessages', array('error' => 'error'));
+    variable_set('matomo_trackmessages', array('error' => 'error'));
 
     $this->drupalPost('user/login', array(), t('Log in'));
-    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Username field is required."]);', '[testPiwikStatusMessages]: trackEvent "Username field is required." is shown.');
-    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Password field is required."]);', '[testPiwikStatusMessages]: trackEvent "Password field is required." is shown.');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Username field is required."]);', '[testMatomoStatusMessages]: trackEvent "Username field is required." is shown.');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Password field is required."]);', '[testMatomoStatusMessages]: trackEvent "Password field is required." is shown.');
 
     // @todo: investigate why drupal_set_message() fails.
     //drupal_set_message('Example status message.', 'status');
@@ -396,123 +396,123 @@ class PiwikStatusMessagesTest extends DrupalWebTestCase {
     //drupal_set_message('Example error message.', 'error');
     //drupal_set_message('Example error <em>message</em> with html tags and <a href="http://example.com/">link</a>.', 'error');
     //$this->drupalGet('');
-    //$this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Status message", "Example status message."]);', '[testPiwikStatusMessages]: Example status message is not enabled for tracking.');
-    //$this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Warning message", "Example warning message."]);', '[testPiwikStatusMessages]: Example warning message is not enabled for tracking.');
-    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message."]);', '[testPiwikStatusMessages]: Example error message is shown.');
-    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message with html tags and link."]);', '[testPiwikStatusMessages]: HTML has been stripped successful from Example error message with html tags and link.');
+    //$this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Status message", "Example status message."]);', '[testMatomoStatusMessages]: Example status message is not enabled for tracking.');
+    //$this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Warning message", "Example warning message."]);', '[testMatomoStatusMessages]: Example warning message is not enabled for tracking.');
+    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message."]);', '[testMatomoStatusMessages]: Example error message is shown.');
+    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message with html tags and link."]);', '[testMatomoStatusMessages]: HTML has been stripped successful from Example error message with html tags and link.');
   }
 }
 
-class PiwikRolesTest extends DrupalWebTestCase {
+class MatomoRolesTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Piwik role tests'),
-      'description' => t('Test roles functionality of Piwik module.'),
-      'group' => 'Piwik',
+      'name' => t('Matomo role tests'),
+      'description' => t('Test roles functionality of Matomo module.'),
+      'group' => 'Matomo',
     );
   }
 
   function setUp() {
-    parent::setUp('piwik');
+    parent::setUp('matomo');
 
     $permissions = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
     );
 
-    // User to set up piwik.
+    // User to set up matomo.
     $this->admin_user = $this->drupalCreateUser($permissions);
   }
 
-  function testPiwikRolesTracking() {
+  function testMatomoRolesTracking() {
     $ua_code = '1';
-    variable_set('piwik_site_id', $ua_code);
-    variable_get('piwik_url_http', 'http://example.com/piwik/');
-    variable_get('piwik_url_https', 'https://example.com/piwik/');
+    variable_set('matomo_site_id', $ua_code);
+    variable_get('matomo_url_http', 'http://example.com/matomo/');
+    variable_get('matomo_url_https', 'https://example.com/matomo/');
 
     // Test if the default settings are working as expected.
 
     // Add to the selected roles only.
-    variable_set('piwik_visibility_roles', 0);
+    variable_set('matomo_visibility_roles', 0);
     // Enable tracking for all users.
-    variable_set('piwik_roles', array());
+    variable_set('matomo_roles', array());
 
     // Check tracking code visibility.
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is displayed for anonymous users on frontpage with default settings.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for anonymous users on frontpage with default settings.');
     $this->drupalGet('admin');
-    $this->assertRaw('"403/URL = "', '[testPiwikRoleVisibility]: 403 Forbidden tracking code is displayed for anonymous users in admin section with default settings.');
+    $this->assertRaw('"403/URL = "', '[testMatomoRoleVisibility]: 403 Forbidden tracking code is displayed for anonymous users in admin section with default settings.');
 
     $this->drupalLogin($this->admin_user);
 
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is displayed for authenticated users on frontpage with default settings.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for authenticated users on frontpage with default settings.');
     $this->drupalGet('admin');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is NOT displayed for authenticated users in admin section with default settings.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed for authenticated users in admin section with default settings.');
 
     // Test if the non-default settings are working as expected.
 
     // Enable tracking only for authenticated users.
-    variable_set('piwik_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
+    variable_set('matomo_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
 
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is displayed for authenticated users only on frontpage.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for authenticated users only on frontpage.');
 
     $this->drupalLogout();
     $this->drupalGet('');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is NOT displayed for anonymous users on frontpage.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed for anonymous users on frontpage.');
 
     // Add to every role except the selected ones.
-    variable_set('piwik_visibility_roles', 1);
+    variable_set('matomo_visibility_roles', 1);
     // Enable tracking for all users.
-    variable_set('piwik_roles', array());
+    variable_set('matomo_roles', array());
 
     // Check tracking code visibility.
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is added to every role and displayed for anonymous users.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is added to every role and displayed for anonymous users.');
     $this->drupalGet('admin');
-    $this->assertRaw('"403/URL = "', '[testPiwikRoleVisibility]: 403 Forbidden tracking code is shown for anonymous users if every role except the selected ones is selected.');
+    $this->assertRaw('"403/URL = "', '[testMatomoRoleVisibility]: 403 Forbidden tracking code is shown for anonymous users if every role except the selected ones is selected.');
 
     $this->drupalLogin($this->admin_user);
 
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is added to every role and displayed on frontpage for authenticated users.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is added to every role and displayed on frontpage for authenticated users.');
     $this->drupalGet('admin');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is added to every role and NOT displayed in admin section for authenticated users.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is added to every role and NOT displayed in admin section for authenticated users.');
 
     // Disable tracking for authenticated users.
-    variable_set('piwik_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
+    variable_set('matomo_roles', array(DRUPAL_AUTHENTICATED_RID => DRUPAL_AUTHENTICATED_RID));
 
     $this->drupalGet('');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is NOT displayed on frontpage for excluded authenticated users.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed on frontpage for excluded authenticated users.');
     $this->drupalGet('admin');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is NOT displayed in admin section for excluded authenticated users.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed in admin section for excluded authenticated users.');
 
     $this->drupalLogout();
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikRoleVisibility]: Tracking code is displayed on frontpage for included anonymous users.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is displayed on frontpage for included anonymous users.');
   }
 
 }
 
-class PiwikPhpFilterTest extends DrupalWebTestCase {
+class MatomoPhpFilterTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'Piwik php filter tests',
-      'description' => 'Test php filter functionality of Piwik module.',
-      'group' => 'Piwik',
+      'name' => 'Matomo php filter tests',
+      'description' => 'Test php filter functionality of Matomo module.',
+      'group' => 'Matomo',
     );
   }
 
   function setUp() {
-    parent::setUp('piwik', 'php');
+    parent::setUp('matomo', 'php');
 
     // Administrator with all permissions.
     $permissions_admin_user = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
       'use PHP for tracking visibility',
     );
     $this->admin_user = $this->drupalCreateUser($permissions_admin_user);
@@ -520,66 +520,66 @@ class PiwikPhpFilterTest extends DrupalWebTestCase {
     // Administrator who cannot configure tracking visibility with PHP.
     $permissions_delegated_admin_user = array(
       'access administration pages',
-      'administer piwik',
+      'administer matomo',
     );
     $this->delegated_admin_user = $this->drupalCreateUser($permissions_delegated_admin_user);
   }
 
-  function testPiwikPhpFilter() {
+  function testMatomoPhpFilter() {
     $ua_code = '1';
     $this->drupalLogin($this->admin_user);
 
     $edit = array();
-    $edit['piwik_site_id'] = $ua_code;
-    $edit['piwik_url_http'] = 'http://example.com/piwik/';
-    $edit['piwik_url_https'] = 'https://example.com/piwik/';
-    $edit['piwik_url_skiperror'] = TRUE; // Required for testing only.
-    $edit['piwik_visibility_pages'] = 2;
-    $edit['piwik_pages'] = '<?php return 0; ?>';
-    $this->drupalPost('admin/config/system/piwik', $edit, t('Save configuration'));
+    $edit['matomo_site_id'] = $ua_code;
+    $edit['matomo_url_http'] = 'http://example.com/matomo/';
+    $edit['matomo_url_https'] = 'https://example.com/matomo/';
+    $edit['matomo_url_skiperror'] = TRUE; // Required for testing only.
+    $edit['matomo_visibility_pages'] = 2;
+    $edit['matomo_pages'] = '<?php return 0; ?>';
+    $this->drupalPost('admin/config/system/matomo', $edit, t('Save configuration'));
 
     // Compare saved setting with posted setting.
-    $piwik_pages = variable_get('piwik_pages', $this->randomName(8));
-    $this->assertEqual('<?php return 0; ?>', $piwik_pages, '[testPiwikPhpFilter]: PHP code snippet is intact.');
+    $matomo_pages = variable_get('matomo_pages', $this->randomName(8));
+    $this->assertEqual('<?php return 0; ?>', $matomo_pages, '[testMatomoPhpFilter]: PHP code snippet is intact.');
 
     // Check tracking code visibility.
-    variable_set('piwik_pages', '<?php return TRUE; ?>');
+    variable_set('matomo_pages', '<?php return TRUE; ?>');
     $this->drupalGet('');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikPhpFilter]: Tracking is displayed on frontpage page.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoPhpFilter]: Tracking is displayed on frontpage page.');
     $this->drupalGet('admin');
-    $this->assertRaw('u+"piwik.php"', '[testPiwikPhpFilter]: Tracking is displayed on admin page.');
+    $this->assertRaw('u+"piwik.php"', '[testMatomoPhpFilter]: Tracking is displayed on admin page.');
 
-    variable_set('piwik_pages', '<?php return FALSE; ?>');
+    variable_set('matomo_pages', '<?php return FALSE; ?>');
     $this->drupalGet('');
-    $this->assertNoRaw('u+"piwik.php"', '[testPiwikPhpFilter]: Tracking is not displayed on frontpage page.');
+    $this->assertNoRaw('u+"piwik.php"', '[testMatomoPhpFilter]: Tracking is not displayed on frontpage page.');
 
     // Test administration form.
-    variable_set('piwik_pages', '<?php return TRUE; ?>');
-    $this->drupalGet('admin/config/system/piwik');
-    $this->assertRaw(t('Pages on which this PHP code returns <code>TRUE</code> (experts only)'), '[testPiwikPhpFilter]: Permission to administer PHP for tracking visibility.');
-    $this->assertRaw(check_plain('<?php return TRUE; ?>'), '[testPiwikPhpFilter]: PHP code snippted is displayed.');
+    variable_set('matomo_pages', '<?php return TRUE; ?>');
+    $this->drupalGet('admin/config/system/matomo');
+    $this->assertRaw(t('Pages on which this PHP code returns <code>TRUE</code> (experts only)'), '[testMatomoPhpFilter]: Permission to administer PHP for tracking visibility.');
+    $this->assertRaw(check_plain('<?php return TRUE; ?>'), '[testMatomoPhpFilter]: PHP code snippted is displayed.');
 
     // Login the delegated user and check if fields are visible.
     $this->drupalLogin($this->delegated_admin_user);
-    $this->drupalGet('admin/config/system/piwik');
-    $this->assertNoRaw(t('Pages on which this PHP code returns <code>TRUE</code> (experts only)'), '[testPiwikPhpFilter]: No permission to administer PHP for tracking visibility.');
-    $this->assertNoRaw(check_plain('<?php return TRUE; ?>'), '[testPiwikPhpFilter]: No permission to view PHP code snippted.');
+    $this->drupalGet('admin/config/system/matomo');
+    $this->assertNoRaw(t('Pages on which this PHP code returns <code>TRUE</code> (experts only)'), '[testMatomoPhpFilter]: No permission to administer PHP for tracking visibility.');
+    $this->assertNoRaw(check_plain('<?php return TRUE; ?>'), '[testMatomoPhpFilter]: No permission to view PHP code snippted.');
 
     // Set a different value and verify that this is still the same after the post.
-    variable_set('piwik_pages', '<?php return 0; ?>');
+    variable_set('matomo_pages', '<?php return 0; ?>');
 
     $edit = array();
-    $edit['piwik_site_id'] = $ua_code;
-    $edit['piwik_url_http'] = 'http://example.com/piwik/';
-    $edit['piwik_url_https'] = 'https://example.com/piwik/';
-    $edit['piwik_url_skiperror'] = TRUE; // Required for testing only.
-    $this->drupalPost('admin/config/system/piwik', $edit, t('Save configuration'));
+    $edit['matomo_site_id'] = $ua_code;
+    $edit['matomo_url_http'] = 'http://example.com/matomo/';
+    $edit['matomo_url_https'] = 'https://example.com/matomo/';
+    $edit['matomo_url_skiperror'] = TRUE; // Required for testing only.
+    $this->drupalPost('admin/config/system/matomo', $edit, t('Save configuration'));
 
     // Compare saved setting with posted setting.
-    $piwik_visibility_pages = variable_get('piwik_visibility_pages', 0);
-    $piwik_pages = variable_get('piwik_pages', $this->randomName(8));
-    $this->assertEqual(2, $piwik_visibility_pages, '[testPiwikPhpFilter]: Pages on which this PHP code returns TRUE is selected.');
-    $this->assertEqual('<?php return 0; ?>', $piwik_pages, '[testPiwikPhpFilter]: PHP code snippet is intact.');
+    $matomo_visibility_pages = variable_get('matomo_visibility_pages', 0);
+    $matomo_pages = variable_get('matomo_pages', $this->randomName(8));
+    $this->assertEqual(2, $matomo_visibility_pages, '[testMatomoPhpFilter]: Pages on which this PHP code returns TRUE is selected.');
+    $this->assertEqual('<?php return 0; ?>', $matomo_pages, '[testMatomoPhpFilter]: PHP code snippet is intact.');
   }
 
 }
