@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Installation file for Matomo - Web analytics module.
+ * Installation file for Matomo Analytics module.
  */
 
 function matomo_install() {

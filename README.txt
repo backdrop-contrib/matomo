@@ -1,5 +1,5 @@
 
-Module: Matomo - Web analytics
+Module: Matomo Analytics
 Author: Alexander Hass <http://www.hass.de/>
 
 

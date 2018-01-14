@@ -27,7 +27,7 @@ define('MATOMO_PAGES', "admin\nadmin/*\nbatch\nnode/add*\nnode/*/*\nuser/*/*");
 function matomo_help($path, $arg) {
   switch ($path) {
     case 'admin/config/system/matomo':
-      return t('<a href="@pk_url">Matomo - Web analytics</a> is an open source (GPL license) web analytics software. It gives interesting reports on your website visitors, your popular pages, the search engines keywords they used, the language they speak... and so much more. Matomo aims to be an open source alternative to Google Analytics.', array('@pk_url' => 'http://www.matomo.org/'));
+      return t('<a href="@pk_url">Matomo Analytics</a> is an open source (GPL license) web analytics software. It gives interesting reports on your website visitors, your popular pages, the search engines keywords they used, the language they speak... and so much more. Matomo aims to be an open source alternative to Google Analytics.', array('@pk_url' => 'http://www.matomo.org/'));
   }
 }
 
