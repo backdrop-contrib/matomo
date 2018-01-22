@@ -122,7 +122,7 @@ function matomo_page_alter(&$page) {
     }
 
     drupal_add_js(array('matomo' => $link_settings), 'setting');
-    drupal_add_js(drupal_get_path('module', 'matomo') . '/piwik.js');
+    drupal_add_js(drupal_get_path('module', 'matomo') . '/matomo.js');
 
     // Matomo can show a tree view of page titles that represents the site structure
     // if setDocumentTitle() provides the page titles as a "/" delimited list.
