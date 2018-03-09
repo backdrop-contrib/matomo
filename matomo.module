@@ -111,7 +111,6 @@ function matomo_page_alter(&$page) {
 
     $set_custom_url = '';
     $set_document_title = '';
-    $set_custom_data = array();
 
     // Add link tracking.
     $link_settings = array();
@@ -255,12 +254,6 @@ function matomo_page_alter(&$page) {
       $script .= '_paq.push(["setUserId", ' . drupal_json_encode(matomo_user_id_hash($user->uid)) . ']);';
     }
 
-    // Set custom data.
-    if (!empty($set_custom_data)) {
-      foreach ($set_custom_data as $custom_data) {
-        $script .= '_paq.push(["setCustomData", ' . $custom_data . ']);';
-      }
-    }
     // Set custom url.
     if (!empty($set_custom_url)) {
       $script .= '_paq.push(["setCustomUrl", ' . $set_custom_url . ']);';
