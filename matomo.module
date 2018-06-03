@@ -420,6 +420,11 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
         break;
     }
 
+    // Migrate old piwik settings to matomo.
+    if (isset($account->data['piwik']['custom'])) {
+      $account->data['matomo']['custom'] = $account->data['piwik']['custom'];
+    }
+
     $form['matomo']['custom'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable user tracking'),
@@ -437,6 +442,11 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
 function matomo_user_presave(&$edit, $account, $category) {
   if (isset($edit['matomo']['custom'])) {
     $edit['data']['matomo']['custom'] = $edit['matomo']['custom'];
+  }
+
+  // Remove old piwik setting to complete migration to matomo.
+  if (isset($edit['data']['piwik'])) {
+    unset($edit['data']['piwik']);
   }
 }
 
