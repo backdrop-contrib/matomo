@@ -18,6 +18,10 @@ function matomo_install() {
     'user/*/*',
   );
   variable_set('matomo_pages', implode("\n", $pages));
+
+  // Make the default install more user and GDPR friendly.
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('opt-in or out of matomo tracking'));
+  drupal_set_message(t('Module %module granted %permission permission to authenticated users.', array('%module' => 'Matomo Analytics', '%permission' => t('Opt-in or out of tracking'))), 'status');
 }
 
 function matomo_uninstall() {

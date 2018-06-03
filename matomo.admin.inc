@@ -168,11 +168,11 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'radios',
     '#title' => t('Allow users to customize tracking on their account page'),
     '#options' => array(
-      t('No customization allowed'),
-      t('Tracking on by default, users with %permission permission can opt out', $t_permission),
-      t('Tracking off by default, users with %permission permission can opt in', $t_permission)
+      0 => t('No customization allowed'),
+      1 => t('Tracking on by default, users with %permission permission can opt out', $t_permission),
+      2 => t('Tracking off by default, users with %permission permission can opt in', $t_permission)
     ),
-    '#default_value' => variable_get('matomo_custom', 0),
+    '#default_value' => variable_get('matomo_custom', 1),
   );
   $form['tracking']['user_vis_settings']['matomo_trackuserid'] = array(
     '#type' => 'checkbox',
