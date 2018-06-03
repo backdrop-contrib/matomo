@@ -73,7 +73,7 @@ function matomo_permission() {
  */
 function matomo_menu() {
   $items['admin/config/system/matomo'] = array(
-    'title' => 'Matomo',
+    'title' => 'Matomo Analytics',
     'description' => 'Configure the settings used to generate your Matomo tracking code.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('matomo_admin_settings_form'),
