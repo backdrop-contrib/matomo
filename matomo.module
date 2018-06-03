@@ -51,11 +51,11 @@ function matomo_permission() {
       'title' => t('Administer Matomo'),
       'description' => t('Perform maintenance tasks for Matomo.'),
     ),
-    'opt-in or out of tracking' => array(
+    'opt-in or out of matomo tracking' => array(
       'title' => t('Opt-in or out of tracking'),
       'description' => t('Allow users to decide if tracking code will be added to pages or not.'),
     ),
-    'use PHP for tracking visibility' => array(
+    'use PHP for matomo tracking visibility' => array(
       'title' => t('Use PHP for tracking visibility'),
       'description' => t('Enter PHP code in the field for tracking visibility settings.'),
       'restrict access' => TRUE,
@@ -401,7 +401,7 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
   $account = $form['#user'];
   $category = $form['#user_category'];
 
-  if ($category == 'account' && user_access('opt-in or out of tracking') && ($custom = variable_get('matomo_custom', 0)) != 0 && _matomo_visibility_roles($account)) {
+  if ($category == 'account' && user_access('opt-in or out of matomo tracking') && ($custom = variable_get('matomo_custom', 0)) != 0 && _matomo_visibility_roles($account)) {
     $form['matomo'] = array(
       '#type' => 'fieldset',
       '#title' => t('Matomo configuration'),

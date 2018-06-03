@@ -86,7 +86,7 @@ function matomo_admin_settings_form($form_state) {
   );
 
   // Page specific visibility configurations.
-  $php_access = user_access('use PHP for tracking visibility');
+  $php_access = user_access('use PHP for matomo tracking visibility');
   $visibility = variable_get('matomo_visibility_pages', 0);
   $pages = variable_get('matomo_pages', MATOMO_PAGES);
 
@@ -163,7 +163,7 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Users'),
   );
-  $t_permission = array('%permission' => t('opt-in or out of tracking'));
+  $t_permission = array('%permission' => t('opt-in or out of matomo tracking'));
   $form['tracking']['user_vis_settings']['matomo_custom'] = array(
     '#type' => 'radios',
     '#title' => t('Allow users to customize tracking on their account page'),

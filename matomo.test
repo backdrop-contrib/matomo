@@ -514,7 +514,7 @@ class MatomoPhpFilterTest extends DrupalWebTestCase {
     $permissions_admin_user = array(
       'access administration pages',
       'administer matomo',
-      'use PHP for tracking visibility',
+      'use PHP for matomo tracking visibility',
     );
     $this->admin_user = $this->drupalCreateUser($permissions_admin_user);
 
