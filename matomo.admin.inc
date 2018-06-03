@@ -163,7 +163,7 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Users'),
   );
-  $t_permission = array('%permission' => t('opt-in or out of matomo tracking'));
+  $t_permission = array('%permission' => t('Opt-in or out of tracking'));
   $form['tracking']['user_vis_settings']['matomo_custom'] = array(
     '#type' => 'radios',
     '#title' => t('Allow users to customize tracking on their account page'),
