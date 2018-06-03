@@ -31,7 +31,7 @@ class MatomoBasicTest extends DrupalWebTestCase {
 
     // User to set up matomo.
     $this->noSnippetUser = $this->drupalCreateUser($permissions);
-    $permissions[] = 'add JS snippets for matomo';
+    $permissions[] = 'add js snippets for matomo';
     $this->admin_user = $this->drupalCreateUser($permissions);
     $this->drupalLogin($this->admin_user);
   }
@@ -514,7 +514,7 @@ class MatomoPhpFilterTest extends DrupalWebTestCase {
     $permissions_admin_user = array(
       'access administration pages',
       'administer matomo',
-      'use PHP for matomo tracking visibility',
+      'use php for matomo tracking visibility',
     );
     $this->admin_user = $this->drupalCreateUser($permissions_admin_user);
 

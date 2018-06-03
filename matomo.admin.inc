@@ -86,7 +86,7 @@ function matomo_admin_settings_form($form_state) {
   );
 
   // Page specific visibility configurations.
-  $php_access = user_access('use PHP for matomo tracking visibility');
+  $php_access = user_access('use php for matomo tracking visibility');
   $visibility = variable_get('matomo_visibility_pages', 0);
   $pages = variable_get('matomo_pages', MATOMO_PAGES);
 
@@ -387,7 +387,7 @@ function matomo_admin_settings_form($form_state) {
   }
 
   // Code snippet settings.
-  $user_access_add_js_snippets = !user_access('add JS snippets for matomo');
+  $user_access_add_js_snippets = !user_access('add js snippets for matomo');
   $user_access_add_js_snippets_permission_warning = $user_access_add_js_snippets ? ' <em>' . t('This field has been disabled because you do not have sufficient permissions to edit it.') . '</em>' : '';
   $form['advanced']['codesnippet'] = array(
     '#type' => 'fieldset',
