@@ -1,6 +1,5 @@
 Matomo Analytics
 ================
-Author: Alexander Hass <https://www.hass.de/>
 
 Adds the Matomo tracking system to your website.
 
