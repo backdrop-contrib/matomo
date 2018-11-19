@@ -62,33 +62,41 @@ download mode.
 
 Known issues
 ------------
-Drupal requirements (https://drupal.org/requirements) tell you to configure 
+Drupal requirements (https://drupal.org/requirements) tell you to configure
 PHP with "session.save_handler = user", but your Matomo installation may
 not work with this configuration and gives you a server error 500.
 
 1. You are able to workaround with the PHP default in your php.ini:
 
+   ```
    [Session]
    session.save_handler = files
+   ```
 
 2. With Apache you may overwrite the PHP setting for the Matomo directory only.
    If Matomo is installed in /matomo you are able to create a .htaccess file in
    this directory with the below code:
 
-   # PHP 4, Apache 1.
+   #### PHP 4, Apache 1.
+   ```
    <IfModule mod_php4.c>
-     php_value session.save_handler files
+    php_value session.save_handler files
    </IfModule>
+   ```
 
-   # PHP 4, Apache 2.
+   #### PHP 4, Apache 2.
+   ```
    <IfModule sapi_apache2.c>
      php_value session.save_handler files
    </IfModule>
+   ```
 
-   # PHP 5, Apache 1 and 2.
+   #### PHP 5, Apache 1 and 2.
+   ```
    <IfModule mod_php5.c>
      php_value session.save_handler files
    </IfModule>
+   ```
 
 Issues
 ------
