@@ -1,6 +1,7 @@
 name = "Matomo Analytics"
 description = Adds Matomo javascript tracking code to all your site's pages.
 backdrop = 1.x
+type = module
 package = Statistics
 configure = admin/config/system/matomo
 files[] = matomo.test
