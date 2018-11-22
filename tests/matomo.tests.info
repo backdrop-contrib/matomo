@@ -1,0 +1,29 @@
+[MatomoBasicTest]
+name = Matomo basic tests
+description = Tests for standard Matomo functionality.
+group = Matomo Analytics
+file = matomo.test
+
+[MatomoCustomVariablesTest]
+name = Matomo custom variable tests
+description = Tests to confirm that the custom variable settings are working.
+group = Matomo Analytics
+file = matomo.test
+
+[MatomoCustomUrls]
+name = Matomo custom URL tests
+description = Tests to confirm that the custom URL settings are working.
+group = Matomo Analytics
+file = matomo.test
+
+[MatomoStatusMessagesTest]
+name = Matomo status message tests
+description = Tests to make sure that tracking of error messages works.
+group = Matomo Analytics
+file = matomo.test
+
+[MatomoRolesTest]
+name = Matomo role tests
+description = Tests to verify that the tracking code respects tracking per role.
+group = Matomo Analytics
+file = matomo.test

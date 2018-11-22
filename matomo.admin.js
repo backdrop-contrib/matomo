@@ -3,116 +3,116 @@
 /**
  * Provide the summary information for the tracking settings vertical tabs.
  */
-Drupal.behaviors.trackingSettingsSummary = {
+Backdrop.behaviors.trackingSettingsSummary = {
   attach: function (context) {
-    // Make sure this behavior is processed only if drupalSetSummary is defined.
-    if (typeof jQuery.fn.drupalSetSummary == 'undefined') {
+    // Make sure this behavior is processed only if backdropSetSummary is defined.
+    if (typeof jQuery.fn.backdropSetSummary == 'undefined') {
       return;
     }
 
-    $('fieldset#edit-domain-tracking', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-domain-tracking', context).backdropSetSummary(function (context) {
       var $radio = $('input[name="matomo_domain_mode"]:checked', context);
       if ($radio.val() == 0) {
-        return Drupal.t('A single domain');
+        return Backdrop.t('A single domain');
       }
       else if ($radio.val() == 1) {
-        return Drupal.t('One domain with multiple subdomains');
+        return Backdrop.t('One domain with multiple subdomains');
       }
     });
 
-    $('fieldset#edit-page-vis-settings', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-page-vis-settings', context).backdropSetSummary(function (context) {
       var $radio = $('input[name="matomo_visibility_pages"]:checked', context);
       if ($radio.val() == 0) {
         if (!$('textarea[name="matomo_pages"]', context).val()) {
-          return Drupal.t('Not restricted');
+          return Backdrop.t('Not restricted');
         }
         else {
-          return Drupal.t('All pages with exceptions');
+          return Backdrop.t('All pages with exceptions');
         }
       }
       else {
-        return Drupal.t('Restricted to certain pages');
+        return Backdrop.t('Restricted to certain pages');
       }
     });
 
-    $('fieldset#edit-role-vis-settings', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-role-vis-settings', context).backdropSetSummary(function (context) {
       var vals = [];
       $('input[type="checkbox"]:checked', context).each(function () {
         vals.push($.trim($(this).next('label').text()));
       });
       if (!vals.length) {
-        return Drupal.t('Not restricted');
+        return Backdrop.t('Not restricted');
       }
       else if ($('input[name="matomo_visibility_roles"]:checked', context).val() == 1) {
-        return Drupal.t('Excepted: @roles', {'@roles' : vals.join(', ')});
+        return Backdrop.t('Excepted: @roles', {'@roles' : vals.join(', ')});
       }
       else {
         return vals.join(', ');
       }
     });
 
-    $('fieldset#edit-user-vis-settings', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-user-vis-settings', context).backdropSetSummary(function (context) {
       var $radio = $('input[name="matomo_custom"]:checked', context);
       if ($radio.val() == 0) {
-        return Drupal.t('Not customizable');
+        return Backdrop.t('Not customizable');
       }
       else if ($radio.val() == 1) {
-        return Drupal.t('On by default with opt out');
+        return Backdrop.t('On by default with opt out');
       }
       else {
-        return Drupal.t('Off by default with opt in');
+        return Backdrop.t('Off by default with opt in');
       }
     });
 
-    $('fieldset#edit-linktracking', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-linktracking', context).backdropSetSummary(function (context) {
       var vals = [];
       if ($('input#edit-matomo-trackmailto', context).is(':checked')) {
-        vals.push(Drupal.t('Mailto links'));
+        vals.push(Backdrop.t('Mailto links'));
       }
       if ($('input#edit-matomo-track', context).is(':checked')) {
-        vals.push(Drupal.t('Outbound links'));
-        vals.push(Drupal.t('Downloads'));
+        vals.push(Backdrop.t('Outbound links'));
+        vals.push(Backdrop.t('Downloads'));
       }
       if ($('input#edit-matomo-trackcolorbox', context).is(':checked')) {
-        vals.push(Drupal.t('Colorbox'));
+        vals.push(Backdrop.t('Colorbox'));
       }
       if (!vals.length) {
-        return Drupal.t('Not tracked');
+        return Backdrop.t('Not tracked');
       }
-      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
+      return Backdrop.t('@items enabled', {'@items' : vals.join(', ')});
     });
 
-    $('fieldset#edit-messagetracking', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-messagetracking', context).backdropSetSummary(function (context) {
       var vals = [];
       $('input[type="checkbox"]:checked', context).each(function () {
         vals.push($.trim($(this).next('label').text()));
       });
       if (!vals.length) {
-        return Drupal.t('Not tracked');
+        return Backdrop.t('Not tracked');
       }
-      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
+      return Backdrop.t('@items enabled', {'@items' : vals.join(', ')});
     });
 
-    $('fieldset#edit-search', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-search', context).backdropSetSummary(function (context) {
       var vals = [];
       if ($('input#edit-matomo-site-search', context).is(':checked')) {
-        vals.push(Drupal.t('Site search'));
+        vals.push(Backdrop.t('Site search'));
       }
       if (!vals.length) {
-        return Drupal.t('Not tracked');
+        return Backdrop.t('Not tracked');
       }
-      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
+      return Backdrop.t('@items enabled', {'@items' : vals.join(', ')});
     });
 
-    $('fieldset#edit-privacy', context).drupalSetSummary(function (context) {
+    $('fieldset#edit-privacy', context).backdropSetSummary(function (context) {
       var vals = [];
       if ($('input#edit-matomo-privacy-donottrack', context).is(':checked')) {
-        vals.push(Drupal.t('Universal web tracking opt-out'));
+        vals.push(Backdrop.t('Universal web tracking opt-out'));
       }
       if (!vals.length) {
-        return Drupal.t('No privacy');
+        return Backdrop.t('No privacy');
       }
-      return Drupal.t('@items enabled', {'@items' : vals.join(', ')});
+      return Backdrop.t('@items enabled', {'@items' : vals.join(', ')});
     });
   }
 };

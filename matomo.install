@@ -6,55 +6,14 @@
  */
 
 function matomo_install() {
-  // Remove tracking from all administrative pages, see https://drupal.org/node/34970.
-  variable_set('matomo_visibility_roles', 0);
-  variable_set('matomo_visibility_pages', 0);
-  $pages = array(
-    'admin',
-    'admin/*',
-    'batch',
-    'node/add*',
-    'node/*/*',
-    'user/*/*',
-  );
-  variable_set('matomo_pages', implode("\n", $pages));
-
   // Make the default install more user and GDPR friendly.
-  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('opt-in or out of matomo tracking'));
-  drupal_set_message(t('Module %module granted %permission permission to authenticated users.', array('%module' => 'Matomo Analytics', '%permission' => t('Opt-in or out of tracking'))), 'status');
+  user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array('opt-in or out of matomo tracking'));
+  backdrop_set_message(t('Module %module granted %permission permission to authenticated users.', array('%module' => 'Matomo Analytics', '%permission' => t('Opt-in or out of tracking'))), 'status');
 }
 
 function matomo_uninstall() {
-  variable_del('matomo_cache');
-  variable_del('matomo_codesnippet_before');
-  variable_del('matomo_codesnippet_after');
-  variable_del('matomo_custom');
-  variable_del('matomo_custom_var');
-  variable_del('matomo_domain_mode');
-  variable_del('matomo_js_scope');
-  variable_del('matomo_last_cache');
-  variable_del('matomo_page_title_hierarchy');
-  variable_del('matomo_page_title_hierarchy_exclude_home');
-  variable_del('matomo_pages');
-  variable_del('matomo_privacy_donottrack');
-  variable_del('matomo_roles');
-  variable_del('matomo_site_id');
-  variable_del('matomo_site_search');
-  variable_del('matomo_trackcolorbox');
-  variable_del('matomo_trackmailto');
-  variable_del('matomo_track'); // interrims solution
-  variable_del('matomo_trackfiles_extensions');
-  variable_del('matomo_trackmessages');
-  variable_del('matomo_trackuserid');
-  variable_del('matomo_translation_set');
-  variable_del('matomo_url_http');
-  variable_del('matomo_url_https');
-  variable_del('matomo_visibility_pages');
-  variable_del('matomo_visibility_roles');
-
-  // Remove backup variables if exits. Remove this code in D8.
-  variable_del('matomo_codesnippet_before_backup_7202');
-  variable_del('matomo_codesnippet_after_backup_7202');
+  $config = config('matomo.settings');
+  $config->delete();
 }
 
 /**
@@ -84,7 +43,7 @@ function matomo_requirements($phase) {
       }
 
       // Raise warning if Matomo user account has not been set yet.
-      if (!preg_match('/^\d{1,}$/', variable_get('matomo_site_id', ''))) {
+      if (!preg_match('/^\d{1,}$/', config_get('matomo.settings', 'site_id'))) {
         $requirements['matomo'] = array(
           'title' => $t('Matomo module'),
           'description' => $t('Matomo module has not been configured yet. Please configure its settings from the <a href="@url">Matomo settings page</a>.', array('@url' => url('admin/config/system/matomo'))),
@@ -98,5 +57,44 @@ function matomo_requirements($phase) {
 }
 
 /**
- * NOTE: Next update need to be 7206 or updates for 'dev' users may break.
+ * Move Matomo settings from variables to config.
  */
+function matomo_update_1000() {
+  $config = config('matomo.settings');
+
+  $settings = array(
+    'site_id',
+    'url_http',
+    'url_https',
+    'domain_mode',
+    'visibility_pages',
+    'visibility_roles',
+    'roles',
+    'custom',
+    'trackuserid',
+    'trackmailto',
+    'track',
+    'trackfiles_extensions',
+    'trackcolorbox',
+    'trackmessages',
+    'site_search',
+    'privacy_donottrack',
+    'page_title_hierarchy',
+    'page_title_hierarchy_exclude_home',
+    'custom_var',
+    'cache',
+    'last_cache',
+    'translation_set',
+    'codesnippet_before',
+    'codesnippet_after',
+    'js_scope',
+    'pages',
+  );
+
+  foreach ($settings as $setting_name) {
+    $config->set($setting_name, update_variable_get('matomo_' . $setting_name));
+    update_variable_del('matomo_' . $setting_name);
+  }
+
+  $config->save();
+}

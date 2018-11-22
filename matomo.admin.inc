@@ -9,39 +9,41 @@
  * Implements hook_admin_settings() for configuring the module.
  */
 function matomo_admin_settings_form($form_state) {
+  $config = config('matomo.settings');
+
   $form['account'] = array(
     '#type' => 'fieldset',
     '#title' => t('General settings'),
   );
 
-  $form['account']['matomo_site_id'] = array(
+  $form['account']['site_id'] = array(
     '#type' => 'textfield',
     '#title' => t('Matomo site ID'),
-    '#default_value' => variable_get('matomo_site_id', ''),
+    '#default_value' => $config->get('site_id'),
     '#size' => 15,
     '#maxlength' => 20,
     '#required' => TRUE,
     '#description' => t('The user account number is unique to the websites domain. Click the <strong>Settings</strong> link in your Matomo account, then the <strong>Websites</strong> tab and enter the appropriate site <strong>ID</strong> into this field.'),
   );
-  $form['account']['matomo_url_http'] = array(
+  $form['account']['url_http'] = array(
     '#type' => 'textfield',
     '#title' => t('Matomo HTTP URL'),
-    '#default_value' => variable_get('matomo_url_http', ''),
+    '#default_value' => $config->get('url_http'),
     '#size' => 80,
     '#maxlength' => 255,
     '#required' => TRUE,
     '#description' => t('The URL to your Matomo base directory. Example: "http://www.example.com/matomo/".'),
   );
-  $form['account']['matomo_url_https'] = array(
+  $form['account']['url_https'] = array(
     '#type' => 'textfield',
     '#title' => t('Matomo HTTPS URL'),
-    '#default_value' => variable_get('matomo_url_https', ''),
+    '#default_value' => $config->get('url_https'),
     '#size' => 80,
     '#maxlength' => 255,
     '#description' => t('The URL to your Matomo base directory with SSL certificate installed. Required if you track a SSL enabled website. Example: "https://www.example.com/matomo/".'),
   );
   // Required for automated form save testing only.
-  $form['account']['matomo_url_skiperror'] = array(
+  $form['account']['url_skiperror'] = array(
     '#type' => 'hidden',
     '#default_value' => FALSE,
   );
@@ -54,7 +56,7 @@ function matomo_admin_settings_form($form_state) {
   $form['tracking'] = array(
     '#type' => 'vertical_tabs',
     '#attached' => array(
-      'js' => array(drupal_get_path('module', 'matomo') . '/matomo.admin.js'),
+      'js' => array(backdrop_get_path('module', 'matomo') . '/matomo.admin.js'),
     ),
   );
 
@@ -75,20 +77,20 @@ function matomo_admin_settings_form($form_state) {
     }
   }
 
-  $form['tracking']['domain_tracking']['matomo_domain_mode'] = array(
+  $form['tracking']['domain_tracking']['domain_mode'] = array(
     '#type' => 'radios',
     '#title' => t('What are you tracking?'),
     '#options' => array(
       0 => t('A single domain (default)') . '<div class="description">' . t('Domain: @domain', array('@domain' => $_SERVER['HTTP_HOST'])) . '</div>',
       1 => t('One domain with multiple subdomains') . '<div class="description">' . t('Examples: @domains', array('@domains' => implode(', ', $multiple_sub_domains))) . '</div>',
     ),
-    '#default_value' => variable_get('matomo_domain_mode', 0),
+    '#default_value' => $config->get('domain_mode'),
   );
 
   // Page specific visibility configurations.
   $php_access = user_access('use php for matomo tracking visibility');
-  $visibility = variable_get('matomo_visibility_pages', 0);
-  $pages = variable_get('matomo_pages', MATOMO_PAGES);
+  $visibility = $config->get('visibility_pages');
+  $pages = $config->get('pages');
 
   $form['tracking']['page_vis_settings'] = array(
     '#type' => 'fieldset',
@@ -99,8 +101,8 @@ function matomo_admin_settings_form($form_state) {
 
   if ($visibility == 2 && !$php_access) {
     $form['tracking']['page_vis_settings'] = array();
-    $form['tracking']['page_vis_settings']['matomo_visibility_pages'] = array('#type' => 'value', '#value' => 2);
-    $form['tracking']['page_vis_settings']['matomo_pages'] = array('#type' => 'value', '#value' => $pages);
+    $form['tracking']['page_vis_settings']['visibility_pages'] = array('#type' => 'value', '#value' => 2);
+    $form['tracking']['page_vis_settings']['pages'] = array('#type' => 'value', '#value' => $pages);
   }
   else {
     $options = array(
@@ -112,18 +114,18 @@ function matomo_admin_settings_form($form_state) {
     if (module_exists('php') && $php_access) {
       $options[] = t('Pages on which this PHP code returns <code>TRUE</code> (experts only)');
       $title = t('Pages or PHP code');
-      $description .= ' ' . t('If the PHP option is chosen, enter PHP code between %php. Note that executing incorrect PHP code can break your Drupal site.', array('%php' => '<?php ?>'));
+      $description .= ' ' . t('If the PHP option is chosen, enter PHP code between %php. Note that executing incorrect PHP code can break your Backdrop site.', array('%php' => '<?php ?>'));
     }
     else {
       $title = t('Pages');
     }
-    $form['tracking']['page_vis_settings']['matomo_visibility_pages'] = array(
+    $form['tracking']['page_vis_settings']['visibility_pages'] = array(
       '#type' => 'radios',
       '#title' => t('Add tracking to specific pages'),
       '#options' => $options,
       '#default_value' => $visibility,
     );
-    $form['tracking']['page_vis_settings']['matomo_pages'] = array(
+    $form['tracking']['page_vis_settings']['pages'] = array(
       '#type' => 'textarea',
       '#title' => $title,
       '#title_display' => 'invisible',
@@ -139,22 +141,21 @@ function matomo_admin_settings_form($form_state) {
     '#title' => t('Roles'),
   );
 
-  $form['tracking']['role_vis_settings']['matomo_visibility_roles'] = array(
+  $form['tracking']['role_vis_settings']['visibility_roles'] = array(
     '#type' => 'radios',
     '#title' => t('Add tracking for specific roles'),
     '#options' => array(
       t('Add to the selected roles only'),
       t('Add to every role except the selected ones'),
     ),
-    '#default_value' => variable_get('matomo_visibility_roles', 0),
+    '#default_value' => $config->get('visibility_roles'),
   );
 
-  $role_options = array_map('check_plain', user_roles());
-  $form['tracking']['role_vis_settings']['matomo_roles'] = array(
+  $form['tracking']['role_vis_settings']['roles'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Roles'),
-    '#default_value' => variable_get('matomo_roles', array()),
-    '#options' => $role_options,
+    '#default_value' => $config->get('roles'),
+    '#options' => user_roles(),
     '#description' => t('If none of the roles are selected, all users will be tracked. If a user has any of the roles checked, that user will be tracked (or excluded, depending on the setting above).'),
   );
 
@@ -164,7 +165,7 @@ function matomo_admin_settings_form($form_state) {
     '#title' => t('Users'),
   );
   $t_permission = array('%permission' => t('Opt-in or out of tracking'));
-  $form['tracking']['user_vis_settings']['matomo_custom'] = array(
+  $form['tracking']['user_vis_settings']['custom'] = array(
     '#type' => 'radios',
     '#title' => t('Allow users to customize tracking on their account page'),
     '#options' => array(
@@ -172,12 +173,12 @@ function matomo_admin_settings_form($form_state) {
       1 => t('Tracking on by default, users with %permission permission can opt out', $t_permission),
       2 => t('Tracking off by default, users with %permission permission can opt in', $t_permission)
     ),
-    '#default_value' => variable_get('matomo_custom', 1),
+    '#default_value' => $config->get('custom'),
   );
-  $form['tracking']['user_vis_settings']['matomo_trackuserid'] = array(
+  $form['tracking']['user_vis_settings']['trackuserid'] = array(
     '#type' => 'checkbox',
     '#title' => t('Track User ID'),
-    '#default_value' => variable_get('matomo_trackuserid', 0),
+    '#default_value' => $config->get('trackuserid'),
     '#description' => t('User ID enables the analysis of groups of sessions, across devices, using a unique, persistent, and non-personally identifiable ID string representing a user. <a href="@url">Learn more about the benefits of using User ID</a>.', array('@url' => 'https://matomo.org/docs/user-id/')),
   );
 
@@ -186,30 +187,30 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Links and downloads'),
   );
-  $form['tracking']['linktracking']['matomo_trackmailto'] = array(
+  $form['tracking']['linktracking']['trackmailto'] = array(
     '#type' => 'checkbox',
     '#title' => t('Track clicks on mailto links'),
-    '#default_value' => variable_get('matomo_trackmailto', 1),
+    '#default_value' => $config->get('trackmailto'),
   );
-  $form['tracking']['linktracking']['matomo_track'] = array(
+  $form['tracking']['linktracking']['track'] = array(
     '#type' => 'checkbox',
     '#title' => t('Track clicks on outbound links and downloads (clicks on file links) for the following extensions'),
-    '#default_value' => variable_get('matomo_track', 1),
+    '#default_value' => $config->get('track'),
   );
-  $form['tracking']['linktracking']['matomo_trackfiles_extensions'] = array(
+  $form['tracking']['linktracking']['trackfiles_extensions'] = array(
     '#title' => t('List of download file extensions'),
     '#title_display' => 'invisible',
     '#type' => 'textfield',
-    '#default_value' => variable_get('matomo_trackfiles_extensions', MATOMO_TRACKFILES_EXTENSIONS),
+    '#default_value' => $config->get('trackfiles_extensions'),
     '#description' => t('A file extension list separated by the | character that will be tracked when clicked. Regular expressions are supported. For example: !extensions', array('!extensions' => MATOMO_TRACKFILES_EXTENSIONS)),
     '#maxlength' => 500,
     '#states' => array(
       'enabled' => array(
-        ':input[name="matomo_track"]' => array('checked' => TRUE),
+        ':input[name="track"]' => array('checked' => TRUE),
       ),
       # Note: Form required marker is not visible as title is invisible.
       'required' => array(
-        ':input[name="matomo_track"]' => array('checked' => TRUE),
+        ':input[name="track"]' => array('checked' => TRUE),
       ),
     ),
   );
@@ -218,10 +219,10 @@ function matomo_admin_settings_form($form_state) {
   $colorbox_dependencies .= t('Requires: !module-list', array('!module-list' => (module_exists('colorbox') ? t('@module (<span class="admin-enabled">enabled</span>)', array('@module' => 'Colorbox')) : t('@module (<span class="admin-disabled">disabled</span>)', array('@module' => 'Colorbox')))));
   $colorbox_dependencies .= '</div>';
 
-  $form['tracking']['linktracking']['matomo_trackcolorbox'] = array(
+  $form['tracking']['linktracking']['trackcolorbox'] = array(
     '#type' => 'checkbox',
     '#title' => t('Track content in colorbox modal dialogs'),
-    '#default_value' => variable_get('matomo_trackcolorbox', 1),
+    '#default_value' => $config->get('trackcolorbox'),
     '#description' => t('Enable to track the content shown in colorbox modal windows.') . $colorbox_dependencies,
     '#disabled' => (module_exists('colorbox') ? FALSE : TRUE),
   );
@@ -231,10 +232,10 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Messages'),
   );
-  $form['tracking']['messagetracking']['matomo_trackmessages'] = array(
+  $form['tracking']['messagetracking']['trackmessages'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Track messages of type'),
-    '#default_value' => variable_get('matomo_trackmessages', array()),
+    '#default_value' => $config->get('trackmessages'),
     '#description' => t('This will track the selected message types shown to users. Tracking of form validation errors may help you identifying usability issues in your site. Every message is tracked as one individual event. Messages from excluded pages cannot be tracked.'),
     '#options' => array(
       'status' => t('Status message'),
@@ -252,11 +253,11 @@ function matomo_admin_settings_form($form_state) {
   $site_search_dependencies .= t('Requires: !module-list', array('!module-list' => (module_exists('search') ? t('@module (<span class="admin-enabled">enabled</span>)', array('@module' => 'Search')) : t('@module (<span class="admin-disabled">disabled</span>)', array('@module' => 'Search')))));
   $site_search_dependencies .= '</div>';
 
-  $form['tracking']['search']['matomo_site_search'] = array(
+  $form['tracking']['search']['site_search'] = array(
     '#type' => 'checkbox',
     '#title' => t('Track internal search'),
     '#description' => t('If checked, internal search keywords are tracked.') . $site_search_dependencies,
-    '#default_value' => variable_get('matomo_site_search', FALSE),
+    '#default_value' => $config->get('site_search'),
     '#disabled' => (module_exists('search') ? FALSE : TRUE),
   );
 
@@ -265,11 +266,11 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Privacy'),
   );
-  $form['tracking']['privacy']['matomo_privacy_donottrack'] = array(
+  $form['tracking']['privacy']['privacy_donottrack'] = array(
     '#type' => 'checkbox',
     '#title' => t('Universal web tracking opt-out'),
     '#description' => t('If enabled and your Matomo server receives the <a href="@donottrack">Do-Not-Track</a> header from the client browser, the Matomo server will not track the user. Compliance with Do Not Track could be purely voluntary, enforced by industry self-regulation, or mandated by state or federal law. Please accept your visitors privacy. If they have opt-out from tracking and advertising, you should accept their personal decision.', array('@donottrack' => 'https://www.eff.org/issues/do-not-track')),
-    '#default_value' => variable_get('matomo_privacy_donottrack', 1),
+    '#default_value' => $config->get('privacy_donottrack'),
   );
 
   // Matomo page title tree view settings.
@@ -280,20 +281,20 @@ function matomo_admin_settings_form($form_state) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-  $form['page_title_hierarchy']['matomo_page_title_hierarchy'] = array(
+  $form['page_title_hierarchy']['page_title_hierarchy'] = array(
     '#type' => 'checkbox',
     '#title' => t("Show page titles as hierarchy like breadcrumbs"),
     '#description' => t('By default Matomo tracks the current page title and shows you a flat list of the most popular titles. This enables a breadcrumbs like tree view.'),
-    '#default_value' => variable_get('matomo_page_title_hierarchy', FALSE),
+    '#default_value' => $config->get('page_title_hierarchy'),
   );
-  $form['page_title_hierarchy']['matomo_page_title_hierarchy_exclude_home'] = array(
+  $form['page_title_hierarchy']['page_title_hierarchy_exclude_home'] = array(
     '#type' => 'checkbox',
     '#title' => t('Hide home page from hierarchy'),
     '#description' => t('If enabled, the "Home" item will be removed from the hierarchy to flatten the structure in the Matomo statistics. Hits to the home page will still be counted, but for other pages the hierarchy will start at level Home+1.'),
-    '#default_value' => variable_get('matomo_page_title_hierarchy_exclude_home', TRUE),
+    '#default_value' => $config->get('page_title_hierarchy_exclude_home'),
   );
 
-  $form['matomo_custom_var'] = array(
+  $form['custom_var'] = array(
     '#collapsible' => TRUE,
   	'#collapsed' => TRUE,
     '#description' => t('You can add Matomos <a href="!custom_var_documentation">Custom Variables</a> here. These will be added to every page that Matomo tracking code appears on. Custom variable names and values are limited to 200 characters in length. Keep the names and values as short as possible and expect long values to get trimmed. You may use tokens in custom variable names and values. Global and user tokens are always available; on node pages, node tokens are also available.', array('!custom_var_documentation' => 'https://matomo.org/docs/custom-variables/')),
@@ -303,11 +304,11 @@ function matomo_admin_settings_form($form_state) {
     '#type' => 'fieldset',
   );
 
-  $matomo_custom_vars = variable_get('matomo_custom_var', array());
+  $matomo_custom_vars = $config->get('custom_var');
 
   // Matomo supports up to 5 custom variables.
   for ($i = 1; $i < 6; $i++) {
-    $form['matomo_custom_var']['slots'][$i]['slot'] = array(
+    $form['custom_var']['slots'][$i]['slot'] = array(
       '#default_value' => $i,
       '#description' => t('Slot number'),
       '#disabled' => TRUE,
@@ -316,7 +317,7 @@ function matomo_admin_settings_form($form_state) {
       '#title_display' => 'invisible',
       '#type' => 'textfield',
     );
-    $form['matomo_custom_var']['slots'][$i]['name'] = array(
+    $form['custom_var']['slots'][$i]['name'] = array(
       '#default_value' => !empty($matomo_custom_vars['slots'][$i]['name']) ? $matomo_custom_vars['slots'][$i]['name'] : '',
       '#description' => t('The custom variable name.'),
       '#maxlength' => 100,
@@ -325,20 +326,20 @@ function matomo_admin_settings_form($form_state) {
       '#title_display' => 'invisible',
       '#type' => 'textfield',
     );
-    $form['matomo_custom_var']['slots'][$i]['value'] = array(
+    $form['custom_var']['slots'][$i]['value'] = array(
       '#default_value' => !empty($matomo_custom_vars['slots'][$i]['value']) ? $matomo_custom_vars['slots'][$i]['value'] : '',
       '#description' => t('The custom variable value.'),
       '#maxlength' => 255,
       '#title' => t('Custom variable value #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
       '#type' => 'textfield',
-      '#element_validate' => array('matomo_token_element_validate'),
+      '#element_validate' => array('token_element_validate'),
       '#token_types' => array('node'),
     );
     if (module_exists('token')) {
-      $form['matomo_custom_var']['slots'][$i]['value']['#element_validate'][] = 'token_element_validate';
+      $form['custom_var']['slots'][$i]['value']['#element_validate'][] = 'token_element_validate';
     }
-    $form['matomo_custom_var']['slots'][$i]['scope'] = array(
+    $form['custom_var']['slots'][$i]['scope'] = array(
       '#default_value' => !empty($matomo_custom_vars['slots'][$i]['scope']) ? $matomo_custom_vars['slots'][$i]['scope'] : 'visit',
       '#description' => t('The scope for the custom variable.'),
       '#title' => t('Custom variable slot #@slot', array('@slot' => $i)),
@@ -351,11 +352,11 @@ function matomo_admin_settings_form($form_state) {
     );
   }
 
-  $form['matomo_custom_var']['matomo_custom_var_description'] = array(
+  $form['custom_var']['custom_var_description'] = array(
     '#type' => 'item',
     '#description' => t('You can supplement Matomos\' basic IP address tracking of visitors by segmenting users based on custom variables. Make sure you will not associate (or permit any third party to associate) any data gathered from your websites (or such third parties\' websites) with any personally identifying information from any source as part of your use (or such third parties\' use) of the Matomo\' service.'),
   );
-  $form['matomo_custom_var']['matomo_custom_var_token_tree'] = array(
+  $form['custom_var']['custom_var_token_tree'] = array(
     '#theme' => 'token_tree',
     '#token_types' => array('node'),
     '#dialog' => TRUE,
@@ -369,20 +370,20 @@ function matomo_admin_settings_form($form_state) {
     '#collapsed' => TRUE,
   );
 
-  $form['advanced']['matomo_cache'] = array(
+  $form['advanced']['cache'] = array(
     '#type' => 'checkbox',
     '#title' => t('Locally cache tracking code file'),
     '#description' => t('If checked, the tracking code file is retrieved from your Matomo site and cached locally. It is updated daily to ensure updates to tracking code are reflected in the local copy.'),
-    '#default_value' => variable_get('matomo_cache', 0),
+    '#default_value' => $config->get('cache'),
   );
 
   // Allow for tracking of the originating node when viewing translation sets.
   if (module_exists('translation')) {
-    $form['advanced']['matomo_translation_set'] = array(
+    $form['advanced']['translation_set'] = array(
       '#type' => 'checkbox',
       '#title' => t('Track translation sets as one unit'),
       '#description' => t('When a node is part of a translation set, record statistics for the originating node instead. This allows for a translation set to be treated as a single unit.'),
-      '#default_value' => variable_get('matomo_translation_set', 0),
+      '#default_value' => $config->get('translation_set'),
     );
   }
 
@@ -396,24 +397,24 @@ function matomo_admin_settings_form($form_state) {
     '#collapsed' => TRUE,
     '#description' => t('You can add custom Matomo <a href="@snippets">code snippets</a> here. These will be added to every page that Matomo appears on. <strong>Do not include the &lt;script&gt; tags</strong>, and always end your code with a semicolon (;).', array('@snippets' => 'https://matomo.org/docs/javascript-tracking/'))
   );
-  $form['advanced']['codesnippet']['matomo_codesnippet_before'] = array(
+  $form['advanced']['codesnippet']['codesnippet_before'] = array(
     '#type' => 'textarea',
     '#title' => t('Code snippet (before)'),
-    '#default_value' => variable_get('matomo_codesnippet_before', ''),
+    '#default_value' => $config->get('codesnippet_before'),
     '#disabled' => $user_access_add_js_snippets,
     '#rows' => 5,
     '#description' => t('Code in this textarea will be added <strong>before</strong> _paq.push(["trackPageView"]).')
   );
-  $form['advanced']['codesnippet']['matomo_codesnippet_after'] = array(
+  $form['advanced']['codesnippet']['codesnippet_after'] = array(
     '#type' => 'textarea',
     '#title' => t('Code snippet (after)'),
-    '#default_value' => variable_get('matomo_codesnippet_after', ''),
+    '#default_value' => $config->get('codesnippet_after'),
     '#disabled' => $user_access_add_js_snippets,
     '#rows' => 5,
     '#description' => t('Code in this textarea will be added <strong>after</strong> _paq.push(["trackPageView"]). This is useful if you\'d like to track a site in two accounts.')
   );
 
-  $form['advanced']['matomo_js_scope'] = array(
+  $form['advanced']['js_scope'] = array(
     '#type' => 'select',
     '#title' => t('JavaScript scope'),
     '#description' => t("Matomo recommends adding the tracking code to the header for performance reasons."),
@@ -421,72 +422,74 @@ function matomo_admin_settings_form($form_state) {
       'footer' => t('Footer'),
       'header' => t('Header'),
     ),
-    '#default_value' => variable_get('matomo_js_scope', 'header'),
+    '#default_value' => $config->get('js_scope'),
   );
+
+  $form['#config'] = 'matomo.settings';
 
   return system_settings_form($form);
 }
 
 function matomo_admin_settings_form_validate($form, &$form_state) {
   // Custom variables validation.
-  foreach ($form_state['values']['matomo_custom_var']['slots'] as $custom_var) {
-    $form_state['values']['matomo_custom_var']['slots'][$custom_var['slot']]['name'] = trim($custom_var['name']);
-    $form_state['values']['matomo_custom_var']['slots'][$custom_var['slot']]['value'] = trim($custom_var['value']);
+  foreach ($form_state['values']['custom_var']['slots'] as $custom_var) {
+    $form_state['values']['custom_var']['slots'][$custom_var['slot']]['name'] = trim($custom_var['name']);
+    $form_state['values']['custom_var']['slots'][$custom_var['slot']]['value'] = trim($custom_var['value']);
 
     // Validate empty names/values.
     if (empty($custom_var['name']) && !empty($custom_var['value'])) {
-      form_set_error("matomo_custom_var][slots][" . $custom_var['slot'] . "][name", t('The custom variable @slot-number requires a <em>Name</em> if a <em>Value</em> has been provided.', array('@slot-number' => $custom_var['slot'])));
+      form_set_error("custom_var][slots][" . $custom_var['slot'] . "][name", t('The custom variable @slot-number requires a <em>Name</em> if a <em>Value</em> has been provided.', array('@slot-number' => $custom_var['slot'])));
     }
     elseif (!empty($custom_var['name']) && empty($custom_var['value'])) {
-      form_set_error("matomo_custom_var][slots][" . $custom_var['slot'] . "][value", t('The custom variable @slot-number requires a <em>Value</em> if a <em>Name</em> has been provided.', array('@slot-number' => $custom_var['slot'])));
+      form_set_error("custom_var][slots][" . $custom_var['slot'] . "][value", t('The custom variable @slot-number requires a <em>Value</em> if a <em>Name</em> has been provided.', array('@slot-number' => $custom_var['slot'])));
     }
   }
 
   // Trim some text area values.
-  $form_state['values']['matomo_site_id'] = trim($form_state['values']['matomo_site_id']);
-  $form_state['values']['matomo_pages'] = trim($form_state['values']['matomo_pages']);
-  $form_state['values']['matomo_codesnippet_before'] = trim($form_state['values']['matomo_codesnippet_before']);
-  $form_state['values']['matomo_codesnippet_after'] = trim($form_state['values']['matomo_codesnippet_after']);
+  $form_state['values']['site_id'] = trim($form_state['values']['site_id']);
+  $form_state['values']['pages'] = trim($form_state['values']['pages']);
+  $form_state['values']['codesnippet_before'] = trim($form_state['values']['codesnippet_before']);
+  $form_state['values']['codesnippet_after'] = trim($form_state['values']['codesnippet_after']);
 
-  if (!preg_match('/^\d{1,}$/', $form_state['values']['matomo_site_id'])) {
-    form_set_error('matomo_site_id', t('A valid Matomo site ID is an integer only.'));
+  if (!preg_match('/^\d{1,}$/', $form_state['values']['site_id'])) {
+    form_set_error('site_id', t('A valid Matomo site ID is an integer only.'));
   }
 
-  $matomo_url = $form_state['values']['matomo_url_http'];
-  if ('/' != drupal_substr($matomo_url, -1, 1)) {
+  $matomo_url = $form_state['values']['url_http'];
+  if ('/' != backdrop_substr($matomo_url, -1, 1)) {
     $matomo_url = $matomo_url . '/';
-    $form_state['values']['matomo_url_http'] = $matomo_url;
+    $form_state['values']['url_http'] = $matomo_url;
   }
   $url = $matomo_url . 'piwik.php';
-  $result = drupal_http_request($url);
-  if ($result->code != 200 && $form_state['values']['matomo_url_skiperror'] == FALSE) {
-    form_set_error('matomo_url_http', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
+  $result = backdrop_http_request($url);
+  if ($result->code != 200 && $form_state['values']['url_skiperror'] == FALSE) {
+    form_set_error('url_http', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
   }
 
-  if (!empty($form_state['values']['matomo_url_https'])) {
-    $matomo_url = $form_state['values']['matomo_url_https'];
-    if ('/' != drupal_substr($matomo_url, -1, 1)) {
+  if (!empty($form_state['values']['url_https'])) {
+    $url = $form_state['values']['url_https'];
+    if ('/' != backdrop_substr($matomo_url, -1, 1)) {
       $matomo_url = $matomo_url . '/';
-      $form_state['values']['matomo_url_https'] = $matomo_url;
+      $form_state['values']['url_https'] = $matomo_url;
     }
     $url = $matomo_url . 'piwik.php';
-    $result = drupal_http_request($url);
-    if ($result->code != 200 && $form_state['values']['matomo_url_skiperror'] == FALSE) {
-      form_set_error('matomo_url_https', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
+    $result = backdrop_http_request($url);
+    if ($result->code != 200 && $form_state['values']['url_skiperror'] == FALSE) {
+      form_set_error('url_https', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
     }
   }
 
   // Delete obsolete local cache file.
-  if (empty($form_state['values']['matomo_cache']) && $form['advanced']['matomo_cache']['#default_value']) {
+  if (empty($form_state['values']['cache']) && $form['advanced']['cache']['#default_value']) {
     matomo_clear_js_cache();
   }
 
   // This is for the Newbie's who cannot read a text area description.
-  if (preg_match('/(.*)<\/?script(.*)>(.*)/i', $form_state['values']['matomo_codesnippet_before'])) {
-    form_set_error('matomo_codesnippet_before', t('Do not include the &lt;script&gt; tags in the javascript code snippets.'));
+  if (preg_match('/(.*)<\/?script(.*)>(.*)/i', $form_state['values']['codesnippet_before'])) {
+    form_set_error('codesnippet_before', t('Do not include the &lt;script&gt; tags in the javascript code snippets.'));
   }
-  if (preg_match('/(.*)<\/?script(.*)>(.*)/i', $form_state['values']['matomo_codesnippet_after'])) {
-    form_set_error('matomo_codesnippet_after', t('Do not include the &lt;script&gt; tags in the javascript code snippets.'));
+  if (preg_match('/(.*)<\/?script(.*)>(.*)/i', $form_state['values']['codesnippet_after'])) {
+    form_set_error('codesnippet_after', t('Do not include the &lt;script&gt; tags in the javascript code snippets.'));
   }
 }
 
@@ -513,17 +516,17 @@ function theme_matomo_admin_custom_var_table($variables) {
   foreach (element_children($form['slots']) as $key => $id) {
     $rows[] = array(
       'data' => array(
-        drupal_render($form['slots'][$id]['slot']),
-        drupal_render($form['slots'][$id]['name']),
-        drupal_render($form['slots'][$id]['value']),
-        drupal_render($form['slots'][$id]['scope']),
+        backdrop_render($form['slots'][$id]['slot']),
+        backdrop_render($form['slots'][$id]['name']),
+        backdrop_render($form['slots'][$id]['value']),
+        backdrop_render($form['slots'][$id]['scope']),
       ),
     );
   }
 
   $output = theme('table', array('header' => $header, 'rows' => $rows));
-  $output .= drupal_render($form['matomo_custom_var_description']);
-  $output .= drupal_render($form['matomo_custom_var_token_tree']);
+  $output .= backdrop_render($form['custom_var_description']);
+  $output .= backdrop_render($form['custom_var_token_tree']);
 
   return $output;
 }
@@ -544,7 +547,7 @@ function theme_matomo_admin_custom_var_table($variables) {
 function matomo_token_element_validate(&$element, &$form_state) {
   $value = isset($element['#value']) ? $element['#value'] : $element['#default_value'];
 
-  if (!drupal_strlen($value)) {
+  if (!backdrop_strlen($value)) {
     // Empty value needs no further validation since the element should depend
     // on using the '#required' FAPI property.
     return $element;
@@ -571,7 +574,7 @@ function _matomo_get_forbidden_tokens($value) {
   $value_tokens = is_string($value) ? token_scan($value) : $value;
 
   foreach ($value_tokens as $type => $tokens) {
-    if (array_filter($tokens, '_matomo_contains_forbidden_token')) {
+    if (array_filter($tokens, '_contains_forbidden_token')) {
       $invalid_tokens = array_merge($invalid_tokens, array_values($tokens));
     }
   }

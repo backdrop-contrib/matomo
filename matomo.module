@@ -75,7 +75,7 @@ function matomo_menu() {
   $items['admin/config/system/matomo'] = array(
     'title' => 'Matomo Analytics',
     'description' => 'Configure the settings used to generate your Matomo tracking code.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('matomo_admin_settings_form'),
     'access arguments' => array('administer matomo'),
     'type' => MENU_NORMAL_ITEM,
@@ -88,13 +88,14 @@ function matomo_menu() {
 /**
  * Implements hook_page_alter() to insert JavaScript to the appropriate scope/region of the page.
  */
-function matomo_page_alter(&$page) {
+function matomo_preprocess_layout(&$variables) {
   global $user;
+  $config = config('matomo.settings');
 
-  $id = variable_get('matomo_site_id', '');
+  $id = $config->get('site_id');
 
   // Get page status code for visibility filtering.
-  $status = drupal_get_http_header('Status');
+  $status = backdrop_get_http_header('Status');
   $trackable_status_codes = array(
     '403 Forbidden',
     '404 Not Found',
@@ -105,32 +106,32 @@ function matomo_page_alter(&$page) {
   // 3. Check if we should track the currently active user's role.
   if (preg_match('/^\d{1,}$/', $id) && (_matomo_visibility_pages() || in_array($status, $trackable_status_codes)) && _matomo_visibility_user($user)) {
 
-    $url_http = variable_get('matomo_url_http', '');
-    $url_https = variable_get('matomo_url_https', '');
-    $scope = variable_get('matomo_js_scope', 'header');
+    $url_http = $config->get('url_http');
+    $url_https = $config->get('url_https');
+    $scope = $config->get('js_scope');
 
     $set_custom_url = '';
     $set_document_title = '';
 
     // Add link tracking.
     $link_settings = array();
-    $link_settings['trackMailto'] = variable_get('matomo_trackmailto', 1);
+    $link_settings['trackMailto'] = $config->get('trackmailto');
 
-    if (module_exists('colorbox') && ($track_colorbox = variable_get('matomo_trackcolorbox', 1))) {
+    if (module_exists('colorbox') && ($track_colorbox = $config->get('trackcolorbox'))) {
       $link_settings['trackColorbox'] = $track_colorbox;
     }
 
-    drupal_add_js(array('matomo' => $link_settings), 'setting');
-    drupal_add_js(drupal_get_path('module', 'matomo') . '/matomo.js');
+    backdrop_add_js(array('matomo' => $link_settings), 'setting');
+    backdrop_add_js(backdrop_get_path('module', 'matomo') . '/matomo.js');
 
     // Matomo can show a tree view of page titles that represents the site structure
     // if setDocumentTitle() provides the page titles as a "/" delimited list.
     // This may makes it easier to browse through the statistics of page titles
     // on larger sites.
-    if (variable_get('matomo_page_title_hierarchy', FALSE) == TRUE) {
+    if ($config->get('page_title_hierarchy') == TRUE) {
       $titles = _matomo_get_hierarchy_titles();
 
-      if (variable_get('matomo_page_title_hierarchy_exclude_home', TRUE)) {
+      if ($config->get('page_title_hierarchy_exclude_home')) {
         // Remove the "Home" item from the titles to flatten the tree view.
         array_shift($titles);
       }
@@ -142,13 +143,13 @@ function matomo_page_alter(&$page) {
         // Encode title, at least to keep "/" intact.
         $titles = array_map('rawurlencode', $titles);
 
-        $set_document_title = drupal_json_encode(implode('/', $titles));
+        $set_document_title = backdrop_json_encode(implode('/', $titles));
       }
     }
 
     // Add messages tracking.
     $message_events = '';
-    if ($message_types = variable_get('matomo_trackmessages', array())) {
+    if ($message_types = $config->get('trackmessages')) {
       $message_types = array_values(array_filter($message_types));
       $status_heading = array(
         'status' => t('Status message'),
@@ -156,11 +157,11 @@ function matomo_page_alter(&$page) {
         'error' => t('Error message'),
       );
 
-      foreach (drupal_get_messages(NULL, FALSE) as $type => $messages) {
+      foreach (backdrop_get_messages(NULL, FALSE) as $type => $messages) {
         // Track only the selected message types.
         if (in_array($type, $message_types)) {
           foreach ($messages as $message) {
-            $message_events .= '_paq.push(["trackEvent", ' . drupal_json_encode(t('Messages')) . ', ' . drupal_json_encode($status_heading[$type]) . ', ' . drupal_json_encode(strip_tags($message)) . ']);';
+            $message_events .= '_paq.push(["trackEvent", ' . backdrop_json_encode(t('Messages')) . ', ' . backdrop_json_encode($status_heading[$type]) . ', ' . backdrop_json_encode(strip_tags($message)) . ']);';
           }
         }
       }
@@ -168,14 +169,14 @@ function matomo_page_alter(&$page) {
 
     // If this node is a translation of another node, pass the original
     // node instead.
-    if (module_exists('translation') && variable_get('matomo_translation_set', 0)) {
+    if (module_exists('translation') && $config->get('translation_set')) {
       // Check we have a node object, it supports translation, and its
       // translated node ID (tnid) doesn't match its own node ID.
       $node = menu_get_object();
       if ($node && translation_supported_type($node->type) && !empty($node->tnid) && ($node->tnid != $node->nid)) {
         $source_node = node_load($node->tnid);
         $languages = language_list();
-        $set_custom_url = drupal_json_encode(url('node/' . $source_node->nid, array('language' => $languages[$source_node->language], 'absolute' => TRUE)));
+        $set_custom_url = backdrop_json_encode(url('node/' . $source_node->nid, array('language' => $languages[$source_node->language], 'absolute' => TRUE)));
       }
     }
 
@@ -195,12 +196,12 @@ function matomo_page_alter(&$page) {
     // URLs to protect are:
     // - user/password?name=username
     // - user/password?name=foo@example.com
-    if (arg(0) == 'user' && arg(1) == 'password' && array_key_exists('name', drupal_get_query_parameters())) {
-      $set_custom_url = drupal_json_encode(url('user/password'));
+    if (arg(0) == 'user' && arg(1) == 'password' && array_key_exists('name', backdrop_get_query_parameters())) {
+      $set_custom_url = backdrop_json_encode(url('user/password'));
     }
 
     // Add custom variables.
-    $matomo_custom_vars = variable_get('matomo_custom_var', array());
+    $matomo_custom_vars = $config->get('custom_var');
     $custom_variable = '';
     for ($i = 1; $i < 6; $i++) {
       $custom_var_name = !empty($matomo_custom_vars['slots'][$i]['name']) ? $matomo_custom_vars['slots'][$i]['name'] : '';
@@ -217,7 +218,7 @@ function matomo_page_alter(&$page) {
         $custom_var_value = token_replace($custom_var_value, $types, array('clear' => TRUE));
 
         // Suppress empty custom names and/or variables.
-        if (!drupal_strlen(trim($custom_var_name)) || !drupal_strlen(trim($custom_var_value))) {
+        if (!backdrop_strlen(trim($custom_var_name)) || !backdrop_strlen(trim($custom_var_value))) {
           continue;
         }
 
@@ -228,30 +229,30 @@ function matomo_page_alter(&$page) {
         $custom_var_name = rtrim(substr($custom_var_name, 0, 200));
         $custom_var_value = rtrim(substr($custom_var_value, 0, 200));
 
-        $custom_var_name = drupal_json_encode($custom_var_name);
-        $custom_var_value = drupal_json_encode($custom_var_value);
-        $custom_var_scope = drupal_json_encode($custom_var_scope);
+        $custom_var_name = backdrop_json_encode($custom_var_name);
+        $custom_var_value = backdrop_json_encode($custom_var_value);
+        $custom_var_scope = backdrop_json_encode($custom_var_scope);
         $custom_variable .= "_paq.push(['setCustomVariable', $i, $custom_var_name, $custom_var_value, $custom_var_scope]);";
       }
     }
 
     // Add any custom code snippets if specified.
-    $codesnippet_before = variable_get('matomo_codesnippet_before', '');
-    $codesnippet_after = variable_get('matomo_codesnippet_after', '');
+    $codesnippet_before = $config->get('codesnippet_before');
+    $codesnippet_after = $config->get('codesnippet_after');
 
     // Build tracker code. See https://matomo.org/docs/javascript-tracking/#toc-asynchronous-tracking
     $script = 'var _paq = _paq || [];';
     $script .= '(function(){';
     $script .= 'var u=(("https:" == document.location.protocol) ? "' . check_url($url_https) . '" : "' . check_url($url_http) . '");';
-    $script .= '_paq.push(["setSiteId", ' . drupal_json_encode(variable_get('matomo_site_id', '')) . ']);';
+    $script .= '_paq.push(["setSiteId", ' . backdrop_json_encode($config->get('site_id')) . ']);';
     $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
 
     // Track logged in users across all devices.
-    if (variable_get('matomo_trackuserid', 0) && user_is_logged_in()) {
+    if ($config->get('trackuserid') && user_is_logged_in()) {
       // The USER_ID value should be a unique, persistent, and non-personally
       // identifiable string identifier that represents a user or signed-in
       // account across devices.
-      $script .= '_paq.push(["setUserId", ' . drupal_json_encode(matomo_user_id_hash($user->uid)) . ']);';
+      $script .= '_paq.push(["setUserId", ' . backdrop_json_encode(matomo_user_id_hash($user->uid)) . ']);';
     }
 
     // Set custom url.
@@ -264,23 +265,23 @@ function matomo_page_alter(&$page) {
     }
 
     // Custom file download extensions.
-    if ((variable_get('matomo_track', 1)) && !(variable_get('matomo_trackfiles_extensions', MATOMO_TRACKFILES_EXTENSIONS) == MATOMO_TRACKFILES_EXTENSIONS)) {
-      $script .= '_paq.push(["setDownloadExtensions", ' . drupal_json_encode(variable_get('matomo_trackfiles_extensions', MATOMO_TRACKFILES_EXTENSIONS)) . ']);';
+    if (($config->get('track')) && !($config->get('trackfiles_extensions') == MATOMO_TRACKFILES_EXTENSIONS)) {
+      $script .= '_paq.push(["setDownloadExtensions", ' . backdrop_json_encode($config->get('trackfiles_extensions')) . ']);';
     }
 
     // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
-    if (variable_get('matomo_privacy_donottrack', 1)) {
+    if ($config->get('privacy_donottrack')) {
       $script .= '_paq.push(["setDoNotTrack", 1]);';
     }
 
     // Domain tracking type.
     global $cookie_domain;
-    $domain_mode = variable_get('matomo_domain_mode', 0);
+    $domain_mode = $config->get('domain_mode');
 
     // Per RFC 2109, cookie domains must contain at least one dot other than the
     // first. For hosts such as 'localhost' or IP Addresses we don't set a cookie domain.
     if ($domain_mode == 1 && count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
-      $script .= '_paq.push(["setCookieDomain", ' . drupal_json_encode($cookie_domain) . ']);';
+      $script .= '_paq.push(["setCookieDomain", ' . backdrop_json_encode($cookie_domain) . ']);';
     }
 
     // Ordering $custom_variable before $codesnippet_before allows users to add
@@ -294,7 +295,7 @@ function matomo_page_alter(&$page) {
 
     // Site search tracking support.
     // NOTE: It's recommended not to call trackPageView() on the Site Search Result page.
-    if (module_exists('search') && variable_get('matomo_site_search', FALSE) && arg(0) == 'search' && $keys = matomo_search_get_keys()) {
+    if (module_exists('search') && $config->get('site_search') && arg(0) == 'search' && $keys = matomo_search_get_keys()) {
       // Parameters:
       // 1. Search keyword searched for. Example: "Banana"
       // 2. Search category selected in your search engine. If you do not need
@@ -304,14 +305,14 @@ function matomo_page_alter(&$page) {
       //
       // hook_preprocess_search_results() is not executed if search result is
       // empty. Make sure the counter is set to 0 if there are no results.
-      $script .= '_paq.push(["trackSiteSearch", ' . drupal_json_encode($keys) . ', false, (window.matomo_search_results) ? window.matomo_search_results : 0]);';
+      $script .= '_paq.push(["trackSiteSearch", ' . backdrop_json_encode($keys) . ', false, (window.matomo_search_results) ? window.matomo_search_results : 0]);';
     }
     else {
       $script .= '_paq.push(["trackPageView"]);';
     }
 
     // Add link tracking.
-    if (variable_get('matomo_track', 1)) {
+    if ($config->get('track')) {
       // Disable tracking of links with ".no-tracking" and ".colorbox" classes.
       $ignore_classes = array(
         'no-tracking',
@@ -320,7 +321,7 @@ function matomo_page_alter(&$page) {
       // Disable the download & outlink tracking for specific CSS classes.
       // Custom code snippets with 'setIgnoreClasses' will override the value.
       // https://developer.matomo.org/api-reference/tracking-javascript#disable-the-download-amp-outlink-tracking-for-specific-css-classes
-      $script .= '_paq.push(["setIgnoreClasses", ' . drupal_json_encode($ignore_classes) . ']);';
+      $script .= '_paq.push(["setIgnoreClasses", ' . backdrop_json_encode($ignore_classes) . ']);';
 
       // Enable download & outlink link tracking.
       $script .= '_paq.push(["enableLinkTracking"]);';
@@ -341,12 +342,12 @@ function matomo_page_alter(&$page) {
     $script .= 'g.async=true;';
 
     // Should a local cached copy of the tracking code be used?
-    if (variable_get('matomo_cache', 0) && $url = _matomo_cache($url_http . 'piwik.js')) {
+    if ($config->get('cache') && $url = _matomo_cache($url_http . 'piwik.js')) {
       // A dummy query-string is added to filenames, to gain control over
       // browser-caching. The string changes on every update or full cache
       // flush, forcing browsers to load a new copy of the files, as the
       // URL changed.
-      $query_string = '?' . variable_get('css_js_query_string', '0');
+      $query_string = '?' . state_get('css_js_query_string', '0');
 
       $script .= 'g.src="' . $url . $query_string . '";';
     }
@@ -358,7 +359,7 @@ function matomo_page_alter(&$page) {
     $script .= '})();';
 
     // Add tracker code to scope.
-    drupal_add_js($script, array('scope' => $scope, 'type' => 'inline'));
+    backdrop_add_js($script, array('scope' => $scope, 'type' => 'inline'));
   }
 }
 
@@ -376,7 +377,7 @@ function matomo_page_alter(&$page) {
  *   User id hash.
  */
 function matomo_user_id_hash($uid) {
-  return drupal_hmac_base64($uid, drupal_get_private_key() . drupal_get_hash_salt());
+  return backdrop_hmac_base64($uid, backdrop_get_private_key() . backdrop_get_hash_salt());
 }
 
 /**
@@ -401,7 +402,7 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
   $account = $form['#user'];
   $category = $form['#user_category'];
 
-  if ($category == 'account' && user_access('opt-in or out of matomo tracking') && ($custom = variable_get('matomo_custom', 1)) != 0 && _matomo_visibility_roles($account)) {
+  if ($category == 'account' && user_access('opt-in or out of matomo tracking') && ($custom = config_get('matomo.settings', 'custom')) != 0 && _matomo_visibility_roles($account)) {
     $form['matomo'] = array(
       '#type' => 'fieldset',
       '#title' => t('Matomo configuration'),
@@ -439,14 +440,14 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
 /**
  * Implements hook_user_presave().
  */
-function matomo_user_presave(&$edit, $account, $category) {
-  if (isset($edit['matomo']['custom'])) {
-    $edit['data']['matomo']['custom'] = $edit['matomo']['custom'];
+function matomo_user_presave($account) {
+  if (isset($account->matomo['custom'])) {
+    $account->data['matomo']['custom'] = $account->matomo['custom'];
   }
 
   // Remove old piwik setting to complete migration to matomo.
-  if (isset($edit['data']['piwik'])) {
-    unset($edit['data']['piwik']);
+  if (isset($account->data['piwik'])) {
+    unset($account->data['piwik']);
   }
 }
 
@@ -454,10 +455,12 @@ function matomo_user_presave(&$edit, $account, $category) {
  * Implements hook_cron().
  */
 function matomo_cron() {
+  $config = config('matomo.settings');
   // Regenerate the piwik.js every day.
-  if (REQUEST_TIME - variable_get('matomo_last_cache', 0) >= 86400 && variable_get('matomo_cache', 0)) {
-    _matomo_cache(variable_get('matomo_url_http', '') . 'piwik.js', TRUE);
-    variable_set('matomo_last_cache', REQUEST_TIME);
+  if (REQUEST_TIME - $config->get('last_cache') >= 86400 && $config->get('cache', 0)) {
+    _matomo_cache($config->get('url_http', '') . 'piwik.js', TRUE);
+    $config->set('last_cache', REQUEST_TIME);
+    $config->save();
   }
 }
 
@@ -471,7 +474,7 @@ function matomo_preprocess_search_results(&$variables) {
   // found. But the pager item mumber can tell the number of search results.
   global $pager_total_items;
 
-  drupal_add_js('window.matomo_search_results = ' . intval($pager_total_items[0]) . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
+  backdrop_add_js('window.matomo_search_results = ' . intval($pager_total_items[0]) . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
 }
 
 /**
@@ -490,25 +493,25 @@ function _matomo_cache($location, $sync_cached_file = FALSE) {
 
   if (!file_exists($file_destination) || $sync_cached_file) {
     // Download the latest tracking code.
-    $result = drupal_http_request($location);
+    $result = backdrop_http_request($location);
 
     if ($result->code == 200) {
       if (file_exists($file_destination)) {
         // Synchronize tracking code and and replace local file if outdated.
-        $data_hash_local = drupal_hash_base64(file_get_contents($file_destination));
-        $data_hash_remote = drupal_hash_base64($result->data);
+        $data_hash_local = backdrop_hash_base64(file_get_contents($file_destination));
+        $data_hash_remote = backdrop_hash_base64($result->data);
         // Check that the files directory is writable.
         if ($data_hash_local != $data_hash_remote && file_prepare_directory($path)) {
           // Save updated tracking code file to disk.
           file_unmanaged_save_data($result->data, $file_destination, FILE_EXISTS_REPLACE);
-          // Based on Drupal Core drupal_build_css_cache().
-          if (variable_get('css_gzip_compression', TRUE) && variable_get('clean_url', 0) && extension_loaded('zlib')) {
+          // Based on Drupal Core backdrop_build_css_cache().
+          if (config_get('system.core', 'preprocess_css') && config_get('system.core', 'clean_url') && extension_loaded('zlib')) {
             file_unmanaged_save_data(gzencode($result->data, 9, FORCE_GZIP), $file_destination . '.gz', FILE_EXISTS_REPLACE);
           }
           watchdog('matomo', 'Locally cached tracking code file has been updated.', array(), WATCHDOG_INFO);
 
           // Change query-strings on css/js files to enforce reload for all users.
-          _drupal_flush_css_js();
+          _backdrop_flush_css_js();
         }
       }
       else {
@@ -517,7 +520,7 @@ function _matomo_cache($location, $sync_cached_file = FALSE) {
           // There is no need to flush JS here as core refreshes JS caches
           // automatically, if new files are added.
           file_unmanaged_save_data($result->data, $file_destination, FILE_EXISTS_REPLACE);
-          if (variable_get('css_gzip_compression', TRUE) && variable_get('clean_url', 0) && extension_loaded('zlib')) {
+          if (config_get('system.core', 'preprocess_css') && config_get('system.core', 'clean_url')   && extension_loaded('zlib')) {
             file_unmanaged_save_data(gzencode($result->data, 9, FORCE_GZIP), $file_destination . '.gz', FILE_EXISTS_REPLACE);
           }
           watchdog('matomo', 'Locally cached tracking code file has been saved.', array(), WATCHDOG_INFO);
@@ -541,10 +544,10 @@ function matomo_clear_js_cache() {
   $path = 'public://matomo';
   if (file_prepare_directory($path)) {
     file_scan_directory($path, '/.*/', array('callback' => 'file_unmanaged_delete'));
-    drupal_rmdir($path);
+    backdrop_rmdir($path);
 
     // Change query-strings on css/js files to enforce reload for all users.
-    _drupal_flush_css_js();
+    _backdrop_flush_css_js();
 
     watchdog('matomo', 'Local cache has been purged.', array(), WATCHDOG_INFO);
   }
@@ -583,7 +586,7 @@ function _matomo_visibility_user($account) {
   if (_matomo_visibility_roles($account)) {
 
     // Use the user's block visibility setting, if necessary.
-    if (($custom = variable_get('matomo_custom', 1)) != 0) {
+    if (($custom = config_get('matomo.settings', 'custom')) != 0) {
       if ($account->uid && isset($account->data['matomo']['custom'])) {
         $enabled = $account->data['matomo']['custom'];
       }
@@ -606,15 +609,15 @@ function _matomo_visibility_user($account) {
  */
 function _matomo_visibility_roles($account) {
 
-  $visibility = variable_get('matomo_visibility_roles', 0);
+  $visibility = config_get('matomo.settings', 'visibility_roles');
   $enabled = $visibility;
-  $roles = variable_get('matomo_roles', array());
+  $roles = config_get('matomo.settings', 'roles');
 
   if (array_sum($roles) > 0) {
     // One or more roles are selected.
-    foreach (array_keys($account->roles) as $rid) {
+    foreach ($account->roles as $role) {
       // Is the current user a member of one of these roles?
-      if (isset($roles[$rid]) && $rid == $roles[$rid]) {
+      if (isset($roles[$role]) && $role == $roles[$role]) {
         // Current user is a member of a role that should be tracked/excluded from tracking.
         $enabled = !$visibility;
         break;
@@ -639,21 +642,21 @@ function _matomo_visibility_pages() {
   // Cache visibility setting in hook_init for hook_footer.
   if (!isset($page_match)) {
 
-    $visibility = variable_get('matomo_visibility_pages', 0);
-    $setting_pages = variable_get('matomo_pages', MATOMO_PAGES);
+    $visibility = config_get('matomo.settings', 'visibility_pages');
+    $setting_pages = config_get('matomo.settings', 'pages');
 
     // Match path if necessary.
     if (!empty($setting_pages)) {
       // Convert path to lowercase. This allows comparison of the same path
       // with different case. Ex: /Page, /page, /PAGE.
-      $pages = drupal_strtolower($setting_pages);
+      $pages = backdrop_strtolower($setting_pages);
       if ($visibility < 2) {
         // Convert the Drupal path to lowercase
-        $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+        $path = backdrop_strtolower(backdrop_get_path_alias($_GET['q']));
         // Compare the lowercase internal and lowercase path alias (if any).
-        $page_match = drupal_match_path($path, $pages);
+        $page_match = backdrop_match_path($path, $pages);
         if ($path != $_GET['q']) {
-          $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+          $page_match = $page_match || backdrop_match_path($_GET['q'], $pages);
         }
         // When $visibility has a value of 0, the tracking code is displayed on
         // all pages except those listed in $pages. When set to 1, it
@@ -687,7 +690,7 @@ function _matomo_get_hierarchy_titles() {
   $titles = array();
 
   // No breadcrumb for the front page.
-  if (drupal_is_front_page()) {
+  if (backdrop_is_front_page()) {
     return $titles;
   }
 
@@ -697,7 +700,7 @@ function _matomo_get_hierarchy_titles() {
 
     // Allow modules to alter the breadcrumb, if possible, as that is much
     // faster than rebuilding an entirely new active trail.
-    drupal_alter('menu_breadcrumb', $active_trail, $item);
+    backdrop_alter('menu_breadcrumb', $active_trail, $item);
 
     // Remove the tab root (parent) if the current path links to its parent.
     // Normally, the tab root link is included in the breadcrumb, as soon as we
