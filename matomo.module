@@ -76,6 +76,17 @@ function matomo_menu() {
 }
 
 /**
+ * Implements hook_config_info().
+ */
+function matomo_config_info() {
+  $info['matomo'] = array(
+    'label' => t('Matomo'),
+    'group' => t('Configuration'),
+  );
+  return $info;
+}
+
+/**
  * Implements hook_page_alter() to insert JavaScript to the appropriate scope/region of the page.
  */
 function matomo_preprocess_layout(&$variables) {
