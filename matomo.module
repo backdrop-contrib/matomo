@@ -401,9 +401,8 @@ function matomo_field_extra_fields() {
  */
 function matomo_form_user_profile_form_alter(&$form, &$form_state) {
   $account = $form['#user'];
-  $category = $form['#user_category'];
 
-  if ($category == 'account' && user_access('opt-in or out of matomo tracking') && ($custom = config_get('matomo.settings', 'custom')) != 0 && _matomo_visibility_roles($account)) {
+  if (user_access('opt-in or out of matomo tracking') && ($custom = config_get('matomo.settings', 'custom')) != 0 && _matomo_visibility_roles($account)) {
     $form['matomo'] = array(
       '#type' => 'fieldset',
       '#title' => t('Matomo configuration'),
