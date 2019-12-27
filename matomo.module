@@ -611,9 +611,9 @@ function _matomo_visibility_roles($account) {
 
   $visibility = config_get('matomo.settings', 'visibility_roles');
   $enabled = $visibility;
-  $roles = config_get('matomo.settings', 'roles');
+  $roles = array_filter(config_get('matomo.settings', 'roles'));
 
-  if (array_sum($roles) > 0) {
+  if (!empty($roles)) {
     // One or more roles are selected.
     foreach ($account->roles as $role) {
       // Is the current user a member of one of these roles?
