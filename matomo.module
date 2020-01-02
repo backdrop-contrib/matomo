@@ -401,9 +401,8 @@ function matomo_field_extra_fields() {
  */
 function matomo_form_user_profile_form_alter(&$form, &$form_state) {
   $account = $form['#user'];
-  $category = $form['#user_category'];
 
-  if ($category == 'account' && user_access('opt-in or out of matomo tracking') && ($custom = config_get('matomo.settings', 'custom')) != 0 && _matomo_visibility_roles($account)) {
+  if (user_access('opt-in or out of matomo tracking') && ($custom = config_get('matomo.settings', 'custom')) != 0 && _matomo_visibility_roles($account)) {
     $form['matomo'] = array(
       '#type' => 'fieldset',
       '#title' => t('Matomo configuration'),
@@ -612,9 +611,9 @@ function _matomo_visibility_roles($account) {
 
   $visibility = config_get('matomo.settings', 'visibility_roles');
   $enabled = $visibility;
-  $roles = config_get('matomo.settings', 'roles');
+  $roles = array_filter(config_get('matomo.settings', 'roles'));
 
-  if (array_sum($roles) > 0) {
+  if (!empty($roles)) {
     // One or more roles are selected.
     foreach ($account->roles as $role) {
       // Is the current user a member of one of these roles?
