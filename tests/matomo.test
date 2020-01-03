@@ -278,7 +278,7 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
 
     // Test whether tokens are replaced in custom variable names.
     $site_slogan = $this->randomName(16);
-    $config->set('site_slogan', $site_slogan);
+    config_set('system.core', 'site_slogan', $site_slogan);
 
     $custom_vars = array(
       'slots' => array(
@@ -315,6 +315,8 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
       )
     );
     $config->set('custom_var', $custom_vars);
+    $config->save();
+    cache_flush('page');
     $this->verbose('<pre>' . print_r($custom_vars, TRUE) . '</pre>');
 
     $this->backdropGet('');
@@ -407,7 +409,7 @@ class MatomoStatusMessagesTest extends BackdropWebTestCase {
     $config->save();
 
     $this->backdropPost('user/login', array(), t('Log in'));
-    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Username field is required."]);', '[testMatomoStatusMessages]: trackEvent "Username field is required." is shown.');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Username or email field is required."]);', '[testMatomoStatusMessages]: trackEvent "Username field is required." is shown.');
     $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Password field is required."]);', '[testMatomoStatusMessages]: trackEvent "Password field is required." is shown.');
 
     // @todo: investigate why backdrop_set_message() fails.
@@ -447,6 +449,7 @@ class MatomoRolesTest extends BackdropWebTestCase {
 
   function testMatomoRolesTracking() {
     $ua_code = '1';
+    $config = config('matomo.settings');
     $config->set('site_id', $ua_code);
     $config->set('url_http', 'http://example.com/matomo/');
     $config->set('url_https', 'https://example.com/matomo/');
@@ -476,6 +479,8 @@ class MatomoRolesTest extends BackdropWebTestCase {
 
     // Enable tracking only for authenticated users.
     $config->set('roles', array(BACKDROP_AUTHENTICATED_ROLE => BACKDROP_AUTHENTICATED_ROLE));
+    $config->save();
+    cache_flush('page');
 
     $this->backdropGet('');
     $this->assertRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for authenticated users only on frontpage.');
@@ -488,6 +493,8 @@ class MatomoRolesTest extends BackdropWebTestCase {
     $config->set('visibility_roles', 1);
     // Enable tracking for all users.
     $config->set('roles', array());
+    $config->save();
+    cache_flush('page');
 
     // Check tracking code visibility.
     $this->backdropGet('');
@@ -504,6 +511,8 @@ class MatomoRolesTest extends BackdropWebTestCase {
 
     // Disable tracking for authenticated users.
     $config->set('roles', array(BACKDROP_AUTHENTICATED_ROLE => BACKDROP_AUTHENTICATED_ROLE));
+    $config->save();
+    cache_flush('page');
 
     $this->backdropGet('');
     $this->assertNoRaw('u+"piwik.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed on frontpage for excluded authenticated users.');
@@ -516,7 +525,7 @@ class MatomoRolesTest extends BackdropWebTestCase {
   }
 
 }
-
+/*
 // class MatomoPhpFilterTest extends BackdropWebTestCase {
 // 
 //   public static function getInfo() {
@@ -608,3 +617,4 @@ class MatomoRolesTest extends BackdropWebTestCase {
 //   }
 // 
 // }
+*/
