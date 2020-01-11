@@ -108,6 +108,7 @@ Current Maintainers
 -------------------
 
 - Joseph Flatt (https://github.com/hosef)
+- indigoxela (https://github.com/indigoxela)
 
 Credits
 -------
