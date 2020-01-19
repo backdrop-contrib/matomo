@@ -437,7 +437,7 @@ function matomo_admin_settings_form($form_state) {
  * Flush the page cache as the tracking code visibility could have changed.
  */
 function _matomo_admin_flush_cache() {
-  cache('page');
+  cache_flush('page');
 }
 
 function matomo_admin_settings_form_validate($form, &$form_state) {
