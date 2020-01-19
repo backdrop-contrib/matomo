@@ -426,8 +426,18 @@ function matomo_admin_settings_form($form_state) {
   );
 
   $form['#config'] = 'matomo.settings';
+  $form['#submit'] = array('_matomo_admin_flush_cache');
 
   return system_settings_form($form);
+}
+
+/**
+ * Additional callback on admin form submit.
+ *
+ * Flush the page cache as the tracking code visibility could have changed.
+ */
+function _matomo_admin_flush_cache() {
+  cache('page');
 }
 
 function matomo_admin_settings_form_validate($form, &$form_state) {
