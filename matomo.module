@@ -246,7 +246,7 @@ function matomo_preprocess_layout(&$variables) {
     $script .= '(function(){';
     $script .= 'var u=(("https:" == document.location.protocol) ? "' . check_url($url_https) . '" : "' . check_url($url_http) . '");';
     $script .= '_paq.push(["setSiteId", ' . backdrop_json_encode($config->get('site_id')) . ']);';
-    $script .= '_paq.push(["setTrackerUrl", u+"piwik.php"]);';
+    $script .= '_paq.push(["setTrackerUrl", u+"matomo.php"]);';
 
     // Track logged in users across all devices.
     if ($config->get('trackuserid') && user_is_logged_in()) {
@@ -343,7 +343,7 @@ function matomo_preprocess_layout(&$variables) {
     $script .= 'g.async=true;';
 
     // Should a local cached copy of the tracking code be used?
-    if ($config->get('cache') && $url = _matomo_cache($url_http . 'piwik.js')) {
+    if ($config->get('cache') && $url = _matomo_cache($url_http . 'matomo.js')) {
       // A dummy query-string is added to filenames, to gain control over
       // browser-caching. The string changes on every update or full cache
       // flush, forcing browsers to load a new copy of the files, as the
@@ -353,7 +353,7 @@ function matomo_preprocess_layout(&$variables) {
       $script .= 'g.src="' . $url . $query_string . '";';
     }
     else {
-      $script .= 'g.src=u+"piwik.js";';
+      $script .= 'g.src=u+"matomo.js";';
     }
 
     $script .= 's.parentNode.insertBefore(g,s);';
@@ -456,9 +456,9 @@ function matomo_user_presave($account) {
  */
 function matomo_cron() {
   $config = config('matomo.settings');
-  // Regenerate the piwik.js every day.
+  // Regenerate the matomo.js every day.
   if (REQUEST_TIME - $config->get('last_cache') >= 86400 && $config->get('cache', 0)) {
-    _matomo_cache($config->get('url_http', '') . 'piwik.js', TRUE);
+    _matomo_cache($config->get('url_http', '') . 'matomo.js', TRUE);
     $config->set('last_cache', REQUEST_TIME);
     $config->save();
   }
