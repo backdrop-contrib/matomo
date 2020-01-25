@@ -470,7 +470,7 @@ function matomo_admin_settings_form_validate($form, &$form_state) {
     $matomo_url = $matomo_url . '/';
     $form_state['values']['url_http'] = $matomo_url;
   }
-  $url = $matomo_url . 'piwik.php';
+  $url = $matomo_url . 'matomo.php';
   $result = backdrop_http_request($url);
   if ($result->code != 200 && $form_state['values']['url_skiperror'] == FALSE) {
     form_set_error('url_http', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
@@ -482,7 +482,7 @@ function matomo_admin_settings_form_validate($form, &$form_state) {
       $matomo_url = $matomo_url . '/';
       $form_state['values']['url_https'] = $matomo_url;
     }
-    $url = $matomo_url . 'piwik.php';
+    $url = $matomo_url . 'matomo.php';
     $result = backdrop_http_request($url);
     if ($result->code != 200 && $form_state['values']['url_skiperror'] == FALSE) {
       form_set_error('url_https', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
