@@ -33,7 +33,7 @@ function matomo_requirements($phase) {
   switch ($phase) {
     case 'runtime':
       // Module cannot validate matomo URL without external HTTP requests.
-      if (variable_get('drupal_http_request_fails', TRUE) && !system_check_http_request()) {
+      if (!_matomo_check_http_request()) {
         $requirements['matomo_http_requests'] = array(
           'title' => $t('HTTP request status'),
           'value' => $t('Fails'),

@@ -726,3 +726,23 @@ function _matomo_get_hierarchy_titles() {
 
   return $titles;
 }
+
+/**
+ * Helper function to verify that Backdrop can make http requests.
+ *
+ * @return bool
+ *   TRUE if http response was received, FALSE otherwise.
+ */
+function _matomo_check_http_request() {
+  $works = &backdrop_static(__FUNCTION__);
+
+  if (!isset($works)) {
+    // Try to get the content of the front page.
+    $result = backdrop_http_request(url('', array('absolute' => TRUE)), array(
+      'max_redirects' => 0,
+      'timeout' => 10,
+    ));
+    $works = isset($result->code) && ($result->code >= 100) && ($result->code < 600);
+  }
+  return $works;
+}
