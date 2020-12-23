@@ -3,6 +3,9 @@ Matomo Analytics
 
 Adds the Matomo tracking system to your website.
 
+[Matomo](https://matomo.org/) is an Open Source analytics tool to track
+website traffic.
+
 Requirements
 ------------
 
@@ -26,6 +29,7 @@ All pages will now have the required JavaScript added to the
 HTML footer can confirm this by viewing the page source from
 your browser.
 
+This module is compatible with Matomo 3.x and 4.x.
 
 Custom variables
 ----------------
