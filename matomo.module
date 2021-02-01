@@ -473,8 +473,15 @@ function matomo_preprocess_search_results(&$variables) {
   // There is no search result $variable available that hold the number of items
   // found. But the pager item mumber can tell the number of search results.
   global $pager_total_items;
+  // But when there's no hit, that variable is NULL.
+  if (is_array($pager_total_items)) {
+    $num_results = (int) $pager_total_items[0];
+  }
+  else {
+    $num_results = 0;
+  }
 
-  backdrop_add_js('window.matomo_search_results = ' . intval($pager_total_items[0]) . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
+  backdrop_add_js('window.matomo_search_results = ' . $num_results . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
 }
 
 /**
