@@ -11,7 +11,7 @@ Backdrop.behaviors.trackingSettingsSummary = {
     }
 
     $('fieldset#edit-domain-tracking', context).backdropSetSummary(function (context) {
-      var $radio = $('input[name="matomo_domain_mode"]:checked', context);
+      var $radio = $('input[name="domain_mode"]:checked', context);
       if ($radio.val() == 0) {
         return Backdrop.t('A single domain');
       }
@@ -21,9 +21,9 @@ Backdrop.behaviors.trackingSettingsSummary = {
     });
 
     $('fieldset#edit-page-vis-settings', context).backdropSetSummary(function (context) {
-      var $radio = $('input[name="matomo_visibility_pages"]:checked', context);
+      var $radio = $('input[name="visibility_pages"]:checked', context);
       if ($radio.val() == 0) {
-        if (!$('textarea[name="matomo_pages"]', context).val()) {
+        if (!$('textarea[name="pages"]', context).val()) {
           return Backdrop.t('Not restricted');
         }
         else {
@@ -43,7 +43,7 @@ Backdrop.behaviors.trackingSettingsSummary = {
       if (!vals.length) {
         return Backdrop.t('Not restricted');
       }
-      else if ($('input[name="matomo_visibility_roles"]:checked', context).val() == 1) {
+      else if ($('input[name="visibility_roles"]:checked', context).val() == 1) {
         return Backdrop.t('Excepted: @roles', {'@roles' : vals.join(', ')});
       }
       else {
@@ -52,7 +52,7 @@ Backdrop.behaviors.trackingSettingsSummary = {
     });
 
     $('fieldset#edit-user-vis-settings', context).backdropSetSummary(function (context) {
-      var $radio = $('input[name="matomo_custom"]:checked', context);
+      var $radio = $('input[name="custom"]:checked', context);
       if ($radio.val() == 0) {
         return Backdrop.t('Not customizable');
       }
@@ -66,14 +66,14 @@ Backdrop.behaviors.trackingSettingsSummary = {
 
     $('fieldset#edit-linktracking', context).backdropSetSummary(function (context) {
       var vals = [];
-      if ($('input#edit-matomo-trackmailto', context).is(':checked')) {
+      if ($('input#edit-trackmailto', context).is(':checked')) {
         vals.push(Backdrop.t('Mailto links'));
       }
-      if ($('input#edit-matomo-track', context).is(':checked')) {
+      if ($('input#edit-track', context).is(':checked')) {
         vals.push(Backdrop.t('Outbound links'));
         vals.push(Backdrop.t('Downloads'));
       }
-      if ($('input#edit-matomo-trackcolorbox', context).is(':checked')) {
+      if ($('input#edit-trackcolorbox', context).is(':checked')) {
         vals.push(Backdrop.t('Colorbox'));
       }
       if (!vals.length) {
@@ -95,7 +95,7 @@ Backdrop.behaviors.trackingSettingsSummary = {
 
     $('fieldset#edit-search', context).backdropSetSummary(function (context) {
       var vals = [];
-      if ($('input#edit-matomo-site-search', context).is(':checked')) {
+      if ($('input#edit-site-search', context).is(':checked')) {
         vals.push(Backdrop.t('Site search'));
       }
       if (!vals.length) {
@@ -106,7 +106,7 @@ Backdrop.behaviors.trackingSettingsSummary = {
 
     $('fieldset#edit-privacy', context).backdropSetSummary(function (context) {
       var vals = [];
-      if ($('input#edit-matomo-privacy-donottrack', context).is(':checked')) {
+      if ($('input#edit-privacy-donottrack', context).is(':checked')) {
         vals.push(Backdrop.t('Universal web tracking opt-out'));
       }
       if (!vals.length) {
