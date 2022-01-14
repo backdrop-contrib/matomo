@@ -9,6 +9,7 @@
  * Implements hook_admin_settings() for configuring the module.
  */
 function matomo_admin_settings_form($form_state) {
+  global $is_https;
   $config = config('matomo.settings');
 
   $form['account'] = array(
@@ -41,6 +42,7 @@ function matomo_admin_settings_form($form_state) {
     '#size' => 80,
     '#maxlength' => 255,
     '#description' => t('The URL to your Matomo base directory with SSL certificate installed. Required if you track a SSL enabled website. Example: "https://www.example.com/matomo/".'),
+    '#required' => $is_https,
   );
   // Required for automated form save testing only.
   $form['account']['url_skiperror'] = array(
