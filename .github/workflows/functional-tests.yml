@@ -49,4 +49,4 @@ jobs:
         run: core/scripts/install.sh --db-url=mysql://root:root@127.0.0.1/backdrop
 
       - name: Run functional tests
-        run: core/scripts/run-tests.sh --force --directory=modules/matomo --verbose --concurrency=2
+        run: core/scripts/run-tests.sh --force --directory=modules/matomo --verbose --color --cache --concurrency=2 2>&1
