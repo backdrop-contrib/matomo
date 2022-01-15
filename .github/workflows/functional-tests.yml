@@ -46,7 +46,7 @@ jobs:
           sudo systemctl restart php7.4-fpm.service
 
       - name: Install Backdrop
-        run: core/scripts/install.sh --db-url=mysql://root:root@localhost/backdrop
+        run: core/scripts/install.sh --db-url=mysql://root:root@127.0.0.1/backdrop
 
       - name: Run functional tests
         run: core/scripts/run-tests.sh --force --directory=modules/matomo --verbose --concurrency=2
