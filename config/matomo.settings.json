@@ -22,6 +22,7 @@
     "cache": 0,
     "last_cache": 0,
     "translation_set": 0,
+    "noscript": 0,
     "codesnippet_before": "",
     "codesnippet_after": "",
     "js_scope": "header",

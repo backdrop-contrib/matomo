@@ -98,3 +98,15 @@ function matomo_update_1000() {
 
   $config->save();
 }
+
+/**
+ * Add the noscript setting.
+ */
+function matomo_update_1001() {
+  $config = config('matomo.settings');
+  $noscript = $config->get('noscript');
+  if (!isset($noscript)) {
+    $config->set('noscript', 0);
+    $config->save();
+  }
+}

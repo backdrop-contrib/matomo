@@ -389,6 +389,13 @@ function matomo_admin_settings_form($form_state) {
     );
   }
 
+  $form['advanced']['noscript'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Also track when JavaScript is disabled'),
+    '#description' => t('If checked, a <em>noscript</em> fallback will be added to the page, to also track when JavaScript is disabled in a browser.'),
+    '#default_value' => $config->get('noscript'),
+  );
+
   // Code snippet settings.
   $user_access_add_js_snippets = !user_access('add js snippets for matomo');
   $user_access_add_js_snippets_permission_warning = $user_access_add_js_snippets ? ' <em>' . t('This field has been disabled because you do not have sufficient permissions to edit it.') . '</em>' : '';
