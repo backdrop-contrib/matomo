@@ -208,6 +208,27 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertRaw('t2.trackPageView', '[testMatomoTrackingCode]: After codesnippet with "t2" tracker has been found.');
   }
 
+  /**
+   * Test the noscript fallback tracking code.
+   */
+  public function testMatomoNojsFallback() {
+    $config = config('matomo.settings');
+    $config->set('site_id', '5');
+    $config->set('noscript', FALSE);
+    $config->set('url_http', 'https://example.com/');
+    $config->set('url_https', 'https://example.com/');
+    $config->save();
+    $fallback_code = '<!-- Matomo --><noscript><p><img src="https://example.com/matomo.php?idsite=5&amp;rec=1" style="border:0" alt="" /></p></noscript><!-- End Matomo -->';
+
+    $this->backdropGet('<front>');
+    $this->assertNoRaw($fallback_code, '[testMatomoTrackingCode]: Fallback code not added when disabled.');
+
+    $config->set('noscript', TRUE);
+    $config->save();
+    cache('page')->flush();
+    $this->backdropGet('<front>');
+    $this->assertRaw($fallback_code, '[testMatomoTrackingCode]: Fallback code present when enabled.');
+  }
 }
 
 /**
