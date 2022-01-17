@@ -333,24 +333,10 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
  */
 class MatomoCustomUrls extends BackdropWebTestCase {
 
-  public static function getInfo() {
-    return array(
-      'name' => 'Matomo custom url tests',
-      'description' => 'Test custom url functionality of Matomo module.',
-      'group' => 'Matomo',
-    );
-  }
+  protected $profile = 'testing';
 
-  function setUp() {
+  public function setUp() {
     parent::setUp('matomo');
-
-    $permissions = array(
-      'access administration pages',
-      'administer matomo',
-    );
-
-    // User to set up matomo.
-    $this->admin_user = $this->backdropCreateUser($permissions);
   }
 
   /**
@@ -409,17 +395,14 @@ class MatomoStatusMessagesTest extends BackdropWebTestCase {
 
 }
 
+/**
+ * Test tracking by role.
+ */
 class MatomoRolesTest extends BackdropWebTestCase {
 
-  public static function getInfo() {
-    return array(
-      'name' => t('Matomo role tests'),
-      'description' => t('Test roles functionality of Matomo module.'),
-      'group' => 'Matomo',
-    );
-  }
+  protected $profile = 'testing';
 
-  function setUp() {
+  public function setUp() {
     parent::setUp('matomo');
 
     $permissions = array(
@@ -431,7 +414,7 @@ class MatomoRolesTest extends BackdropWebTestCase {
     $this->admin_user = $this->backdropCreateUser($permissions);
   }
 
-  function testMatomoRolesTracking() {
+  public function testMatomoRolesTracking() {
     $ua_code = '1';
     $config = config('matomo.settings');
     $config->set('site_id', $ua_code);
