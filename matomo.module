@@ -376,11 +376,8 @@ function matomo_preprocess_page(&$variables) {
   global $user, $is_https;
   $config = config('matomo.settings');
 
-  // Nothing to do if "noscript" is not enabled. If the current path is
-  // "user/password", the url might expose the username to Matomo.
-  // @todo Verify that this is also the case with Backdrop.
-  // @see https://www.drupal.org/node/2693595
-  if (!$config->get('noscript') || current_path() == 'user/password') {
+  // Nothing to do if "noscript" is not enabled.
+  if (!$config->get('noscript')) {
     return;
   }
 
