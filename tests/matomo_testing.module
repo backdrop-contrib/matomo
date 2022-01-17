@@ -32,15 +32,13 @@ function _matomo_testing_page() {
 
 /**
  * Implements hook_preprocess_HOOK().
+ *
+ * Workaround since core 1.21.0. to get message related tests passing again.
  */
 function matomo_testing_preprocess_status_messages(&$variables) {
   // Put existing messages in the $variables array, without resetting them.
-  // Otherwise the message related tests will always fail.
-  // Apparently the theme function runs before the layour preprocessor, so
-  // theme_status_messages already flushed the messages and
-  // backdrop_get_messages() in matomo_preprocess_layout() always gets an empty
-  // array.
-  // @todo Is it a safe assumption that only tests are broken since core 1.21.0,
-  // or could - whatever changed - also affect functionality?
+  // Apparently in Simpletest function theme_status_messages() runs before
+  // matomo_preprocess_layout(), so the messages array already got flushed.
+  // The order in regular page accesses is: preprocessor, then theme function.
   $variables['messages'] = backdrop_get_messages(NULL, FALSE);
 }
