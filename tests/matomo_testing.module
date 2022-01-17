@@ -1,0 +1,46 @@
+<?php
+/**
+ * @file
+ * Helper module to test messages.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function matomo_testing_menu() {
+  $items = array();
+  $items['matomo-testing'] = array(
+    'page callback' => '_matomo_testing_page',
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * Page callback.
+ */
+function _matomo_testing_page() {
+  // Flush previous messages and set some.
+  backdrop_get_messages();
+  backdrop_set_message('Example error message.', 'error');
+  backdrop_set_message('Example warning message.', 'warning');
+  backdrop_set_message('Example status message.', 'status');
+  backdrop_set_message('Example error <em>message</em> with html tags and <a href="https://example.com/">link</a>.', 'error');
+
+  return '<p>Some content</p>';
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function matomo_testing_preprocess_status_messages(&$variables) {
+  // Put existing messages in the $variables array, without resetting them.
+  // Otherwise the message related tests will always fail.
+  // Apparently the theme function runs before the layour preprocessor, so
+  // theme_status_messages already flushed the messages and
+  // backdrop_get_messages() in matomo_preprocess_layout() always gets an empty
+  // array.
+  // @todo Is it a safe assumption that only tests are broken since core 1.21.0,
+  // or could - whatever changed - also affect functionality?
+  $variables['messages'] = backdrop_get_messages(NULL, FALSE);
+}

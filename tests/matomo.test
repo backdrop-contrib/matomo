@@ -378,54 +378,35 @@ class MatomoCustomUrls extends BackdropWebTestCase {
 
 }
 
+/**
+ * Test status message tracking.
+ */
 class MatomoStatusMessagesTest extends BackdropWebTestCase {
 
-  public static function getInfo() {
-    return array(
-      'name' => 'Matomo status messages tests',
-      'description' => 'Test status messages functionality of Matomo module.',
-      'group' => 'Matomo',
-    );
+  protected $profile = 'testing';
+
+  public function setUp() {
+    parent::setUp(array('matomo', 'matomo_testing'));
   }
 
-  function setUp() {
-    parent::setUp('matomo');
-
-    $permissions = array(
-      'access administration pages',
-      'administer matomo',
-    );
-
-    // User to set up matomo.
-    $this->admin_user = $this->backdropCreateUser($permissions);
-  }
-
-  function testMatomoStatusMessages() {
-    $ua_code = '1';
+  public function testMatomoStatusMessages() {
     $config = config('matomo.settings');
-    $config->set('site_id', $ua_code);
-    // Enable logging of errors only.
+    $config->set('site_id', '1');
+    // Enable tracking of error messages.
     $config->set('trackmessages', array('error' => 'error'));
     $config->save();
 
     $this->backdropPost('user/login', array(), t('Log in'));
-    // @todo These two are broken since Backdrop 1.21.0 Apparently
-    // backdrop_get_messages() in function matomo_preprocess_layout() is always
-    // empty now - only in the test.
-    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Username or email field is required."]);', '[testMatomoStatusMessages]: trackEvent "Username field is required." is shown.');
-    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Password field is required."]);', '[testMatomoStatusMessages]: trackEvent "Password field is required." is shown.');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Username or email field is required."]);', '[testMatomoStatusMessages]: trackEvent "Username field is required." is shown.');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Password field is required."]);', '[testMatomoStatusMessages]: trackEvent "Password field is required." is shown.');
 
-    // @todo: investigate why backdrop_set_message() fails.
-    //backdrop_set_message('Example status message.', 'status');
-    //backdrop_set_message('Example warning message.', 'warning');
-    //backdrop_set_message('Example error message.', 'error');
-    //backdrop_set_message('Example error <em>message</em> with html tags and <a href="https://example.com/">link</a>.', 'error');
-    //$this->backdropGet('');
-    //$this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Status message", "Example status message."]);', '[testMatomoStatusMessages]: Example status message is not enabled for tracking.');
-    //$this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Warning message", "Example warning message."]);', '[testMatomoStatusMessages]: Example warning message is not enabled for tracking.');
-    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message."]);', '[testMatomoStatusMessages]: Example error message is shown.');
-    //$this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message with html tags and link."]);', '[testMatomoStatusMessages]: HTML has been stripped successful from Example error message with html tags and link.');
+    $this->backdropGet('matomo-testing');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message."]);', '[testMatomoStatusMessages]: Example error message is tracked.');
+    $this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Warning message", "Example warning message."]);', '[testMatomoStatusMessages]: Example warning message is not enabled for tracking.');
+    $this->assertNoRaw('_paq.push(["trackEvent", "Messages", "Status message", "Example status message."]);', '[testMatomoStatusMessages]: Example status message is not enabled for tracking.');
+    $this->assertRaw('_paq.push(["trackEvent", "Messages", "Error message", "Example error message with html tags and link."]);', '[testMatomoStatusMessages]: HTML has been stripped from tracked message with html tags and link.');
   }
+
 }
 
 class MatomoRolesTest extends BackdropWebTestCase {

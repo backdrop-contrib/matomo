@@ -1,0 +1,6 @@
+name = Matomo Testing
+description = Helper module for testing matomo.
+dependencies[] = matomo
+backdrop = 1.x
+type = module
+hidden = TRUE
