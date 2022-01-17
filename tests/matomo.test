@@ -1,10 +1,15 @@
 <?php
-
 /**
  * @file
  * Test file for Matomo module.
  */
+
+/**
+ * Test general functionality.
+ */
 class MatomoBasicTest extends BackdropWebTestCase {
+
+  protected $profile = 'testing';
 
   /**
    * User without permissions to edit snippets.
@@ -13,16 +18,13 @@ class MatomoBasicTest extends BackdropWebTestCase {
    */
   protected $noSnippetUser;
 
-  public static function getInfo() {
-    return array(
-      'name' => t('Matomo basic tests'),
-      'description' => t('Test basic functionality of Matomo module.'),
-      'group' => 'Matomo',
-    );
-  }
-
-  function setUp() {
+  public function setUp() {
     parent::setUp('matomo');
+
+    // Basic setup for the "testing" profile.
+    config_set('system.core', 'site_frontpage', 'node');
+    user_role_grant_permissions(BACKDROP_ANONYMOUS_ROLE, array('access content'));
+    user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array('access content'));
 
     $permissions = array(
       'access administration pages',
@@ -36,7 +38,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->backdropLogin($this->admin_user);
   }
 
-  function testMatomoConfiguration() {
+  public function testMatomoConfiguration() {
     // Check for setting page's presence.
     $this->backdropGet('admin/config/system/matomo');
     $this->assertRaw(t('Matomo site ID'), '[testMatomoConfiguration]: Settings page displayed.');
@@ -63,7 +65,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertFieldByXPath("//textarea[@name='codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is disabled.');
   }
 
-  function testMatomoPageVisibility() {
+  public function testMatomoPageVisibility() {
     $ua_code = '1';
     $config = config('matomo.settings');
 
@@ -90,7 +92,8 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->backdropGet('admin');
     $this->assertNoRaw('u+"matomo.php"', '[testMatomoPageVisibility]: Tracking code is not displayed on admin page.');
     $this->backdropGet('admin/config/system/matomo');
-    // Checking for tracking code URI here, as $ua_code is displayed in the form.
+    // Checking for tracking code URI here, as $ua_code is displayed in the
+    // form.
     $this->assertNoRaw('u+"matomo.php"', '[testMatomoPageVisibility]: Tracking code is not displayed on admin subpage.');
 
     // Test whether tracking code display is properly flipped.
@@ -99,7 +102,8 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->backdropGet('admin');
     $this->assertRaw('u+"matomo.php"', '[testMatomoPageVisibility]: Tracking code is displayed on admin page.');
     $this->backdropGet('admin/config/system/matomo');
-    // Checking for tracking code URI here, as $ua_code is displayed in the form.
+    // Checking for tracking code URI here, as $ua_code is displayed in the
+    // form.
     $this->assertRaw('u+"matomo.php"', '[testMatomoPageVisibility]: Tracking code is displayed on admin subpage.');
     $this->backdropGet('');
     $this->assertNoRaw('u+"matomo.php"', '[testMatomoPageVisibility]: Tracking code is NOT displayed on front page.');
@@ -124,12 +128,12 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertRaw('404/URL = "', '[testMatomoPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
   }
 
-  function testMatomoTrackingCode() {
+  public function testMatomoTrackingCode() {
     $ua_code = '2';
     $config = config('matomo.settings');
     $config->set('site_id', $ua_code);
-    $config->get('url_http', 'http://example.com/matomo/');
-    $config->get('url_https', 'https://example.com/matomo/');
+    $config->set('url_http', 'http://example.com/matomo/');
+    $config->set('url_https', 'https://example.com/matomo/');
 
     // Show tracking code on every page except the listed pages.
     $config->set('visibility_pages', 0);
@@ -184,7 +188,8 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->backdropGet('');
 
     // Test may run on localhost, an ipaddress or real domain name.
-    // TODO: Workaround to run tests successfully. This feature cannot tested reliable.
+    // TODO: Workaround to run tests successfully. This feature cannot get
+    // tested reliable.
     global $cookie_domain;
     if (count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
       $this->assertRaw('_paq.push(["setCookieDomain"', '[testMatomoTrackingCode]: One domain with multiple subdomains is active on real host.');
@@ -205,30 +210,18 @@ class MatomoBasicTest extends BackdropWebTestCase {
 
 }
 
+/**
+ * Test tracking with custom variables.
+ */
 class MatomoCustomVariablesTest extends BackdropWebTestCase {
 
-  public static function getInfo() {
-    return array(
-      'name' => t('Matomo Custom Variables tests'),
-      'description' => t('Test custom variables functionality of Matomo module.'),
-      'group' => 'Matomo',
-      //'dependencies' => array('token'),
-    );
-  }
+  protected $profile = 'testing';
 
-  function setUp() {
+  public function setUp() {
     parent::setUp('matomo');
-
-    $permissions = array(
-      'access administration pages',
-      'administer matomo',
-    );
-
-    // User to set up matomo.
-    $this->admin_user = $this->backdropCreateUser($permissions);
   }
 
-  function testMatomoCustomVariables() {
+  public function testMatomoCustomVariables() {
     $ua_code = '3';
     $config = config('matomo.settings');
     $config->set('site_id', $ua_code);
@@ -266,7 +259,7 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
           'value' => 'Bar 5',
           'scope' => 1,
         ),
-      )
+      ),
     );
     $config->set('custom_var', $custom_vars);
     $config->save();
@@ -312,7 +305,7 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
           'value' => '',
           'scope' => 3,
         ),
-      )
+      ),
     );
     $config->set('custom_var', $custom_vars);
     $config->save();
@@ -326,6 +319,7 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
     $this->assertNoRaw("_paq.push(['setCustomVariable', 4,", '[testMatomoCustomVariables]: Empty name and value is not shown.');
     $this->assertNoRaw("_paq.push(['setCustomVariable', 5,", '[testMatomoCustomVariables]: Empty name and value is not shown.');
   }
+
 }
 
 /**
