@@ -228,6 +228,16 @@ class MatomoBasicTest extends BackdropWebTestCase {
     cache('page')->flush();
     $this->backdropGet('<front>');
     $this->assertRaw($fallback_code, '[testMatomoTrackingCode]: Fallback code present when enabled.');
+
+    // Now only track anonymous.
+    $config->set('roles', array(BACKDROP_ANONYMOUS_ROLE => BACKDROP_ANONYMOUS_ROLE));
+    $config->save();
+    $this->backdropGet('<front>');
+    $this->assertNoRaw($fallback_code, '[testMatomoTrackingCode]: Fallback code not added when role not tracked.');
+
+    $this->backdropLogout();
+    $this->backdropGet('<front>');
+    $this->assertRaw($fallback_code, '[testMatomoTrackingCode]: Fallback code present when role is tracked.');
   }
 }
 
