@@ -87,12 +87,13 @@ function matomo_config_info() {
 }
 
 /**
- * Implements hook_preprocess_layout().
+ * Implements hook_preprocess_page().
  *
- * Insert JavaScript to the appropriate scope/region of the page.
+ * Insert JavaScript to the appropriate scope/region of the page, insert the
+ * noscript fallback to page_bottom if enabled.
  */
-function matomo_preprocess_layout(&$variables) {
-  global $user;
+function matomo_preprocess_page(&$variables) {
+  global $user, $is_https;
   $config = config('matomo.settings');
 
   $id = $config->get('site_id');
@@ -363,44 +364,14 @@ function matomo_preprocess_layout(&$variables) {
 
     // Add tracker code to scope.
     backdrop_add_js($script, array('scope' => $scope, 'type' => 'inline'));
-  }
-}
-
-/**
- * Implements hook_preprocess_page().
- *
- * We can not use the layout preprocessor, as we need to add markup outside the
- * layout.
- */
-function matomo_preprocess_page(&$variables) {
-  global $user, $is_https;
-  $config = config('matomo.settings');
-
-  // Nothing to do if "noscript" is not enabled.
-  if (!$config->get('noscript')) {
-    return;
-  }
-
-  $id = $config->get('site_id');
-  // Get page status code for visibility filtering.
-  $status = backdrop_get_http_header('Status');
-  $trackable_status_codes = array(
-    '403 Forbidden',
-    '404 Not Found',
-  );
-
-  // 1. Check if the matomo account number has a value.
-  // 2. Track page views based on visibility value.
-  // 3. Check if we should track the currently active user's role.
-  if (preg_match('/^\d{1,}$/', $id) && (_matomo_visibility_pages() || in_array($status, $trackable_status_codes)) && _matomo_visibility_user($user)) {
-    $url_http = $config->get('url_http');
-    $url_https = $config->get('url_https');
 
     // Add the noscript fallback markup to the page_bottom string.
-    $src_url = ($is_https && !empty($url_https)) ? check_url($url_https) : check_url($url_http);
-    $src_url = rtrim($src_url, '/') . "/matomo.php?idsite=$id&amp;rec=1";
-    $img = '<img src="' . $src_url . '" style="border:0" alt="" />';
-    $variables['page_bottom'] .= "<!-- Matomo --><noscript><p>$img</p></noscript><!-- End Matomo -->";
+    if ($config->get('noscript')) {
+      $src_url = ($is_https && !empty($url_https)) ? check_url($url_https) : check_url($url_http);
+      $src_url = rtrim($src_url, '/') . "/matomo.php?idsite=$id&amp;rec=1";
+      $img = '<img src="' . $src_url . '" style="border:0" alt="" />';
+      $variables['page_bottom'] .= "<!-- Matomo --><noscript><p>$img</p></noscript><!-- End Matomo -->";
+    }
   }
 }
 
