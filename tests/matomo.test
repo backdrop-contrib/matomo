@@ -14,16 +14,11 @@ class MatomoBasicTest extends BackdropWebTestCase {
   /**
    * User without permissions to edit snippets.
    *
-   * @var User
+   * @var object|false
    */
   protected $noSnippetUser;
 
-  /**
-   * @var User
-   */
-  protected $admin_user;
-
-  public function setUp() {
+  protected function setUp() {
     parent::setUp('matomo');
 
     // Basic setup for the "testing" profile.
@@ -39,12 +34,12 @@ class MatomoBasicTest extends BackdropWebTestCase {
     // User to set up matomo.
     $this->noSnippetUser = $this->backdropCreateUser($permissions);
     $permissions[] = 'add js snippets for matomo';
-    $this->admin_user = $this->backdropCreateUser($permissions);
-    $this->backdropLogin($this->admin_user);
+    $admin_user = $this->backdropCreateUser($permissions);
+    $this->backdropLogin($admin_user);
     return TRUE;
   }
 
-  public function testMatomoConfiguration() {
+  protected function testMatomoConfiguration() {
     // Check for setting page's presence.
     $this->backdropGet('admin/config/system/matomo');
     $this->assertRaw(t('Matomo site ID'), '[testMatomoConfiguration]: Settings page displayed.');
@@ -71,7 +66,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertFieldByXPath("//textarea[@name='codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is disabled.');
   }
 
-  public function testMatomoPageVisibility() {
+  protected function testMatomoPageVisibility() {
     $ua_code = '1';
     $config = config('matomo.settings');
 
@@ -134,7 +129,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertRaw('404/URL = "', '[testMatomoPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
   }
 
-  public function testMatomoTrackingCode() {
+  protected function testMatomoTrackingCode() {
     $ua_code = '2';
     $config = config('matomo.settings');
     $config->set('site_id', $ua_code);
@@ -217,7 +212,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
   /**
    * Test the noscript fallback tracking code.
    */
-  public function testMatomoNojsFallback() {
+  protected function testMatomoNojsFallback() {
     $config = config('matomo.settings');
     $config->set('site_id', '5');
     $config->set('noscript', FALSE);

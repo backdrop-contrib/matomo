@@ -11,7 +11,7 @@ class MatomoRolesTest extends BackdropWebTestCase {
   protected $profile = 'testing';
 
   /**
-   * @var User
+   * @var object|false
    */
   protected $admin_user;
 
@@ -36,7 +36,6 @@ class MatomoRolesTest extends BackdropWebTestCase {
     $config->set('url_https', 'https://example.com/matomo/');
 
     // Test if the default settings are working as expected.
-
     // Add to the selected roles only.
     $config->set('visibility_roles', 0);
     // Enable tracking for all users.
@@ -57,7 +56,6 @@ class MatomoRolesTest extends BackdropWebTestCase {
     $this->assertNoRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed for authenticated users in admin section with default settings.');
 
     // Test if the non-default settings are working as expected.
-
     // Enable tracking only for authenticated users.
     $config->set('roles', array(BACKDROP_AUTHENTICATED_ROLE => BACKDROP_AUTHENTICATED_ROLE));
     $config->save();

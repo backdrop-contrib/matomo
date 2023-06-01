@@ -104,7 +104,7 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
     $config->set('custom_var', $custom_vars);
     $config->save();
     cache_flush('page');
-    $this->verbose('<pre>' . print_r($custom_vars, TRUE) . '</pre>');
+    $this->verbose('<pre>' . check_plain(var_export($custom_vars, TRUE)) . '</pre>');
 
     $this->backdropGet('');
     $this->assertRaw("_paq.push(['setCustomVariable', 1, \"Name: $site_slogan\", \"Value: $site_slogan\", 3]", '[testMatomoCustomVariables]: Tokens have been replaced in custom variable.');

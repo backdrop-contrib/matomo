@@ -18,6 +18,8 @@ function matomo_testing_menu() {
 
 /**
  * Page callback.
+ *
+ * @return string
  */
 function _matomo_testing_page() {
   // Flush previous messages and set some.
