@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * Test custom url functionality of Matomo module.
+ */
+class MatomoCustomUrls extends BackdropWebTestCase {
+
+  protected $profile = 'testing';
+
+  protected function setUp() {
+    parent::setUp('matomo');
+    return TRUE;
+  }
+
+  /**
+   * Tests if user password page urls are overridden.
+   */
+  protected function testMatomoUserPasswordPage() {
+    $base_path = base_path();
+    $ua_code = '1';
+
+    $config = config('matomo.settings');
+    $config->set('site_id', $ua_code);
+    $config->set('url_http', 'http://example.com/matomo/');
+    $config->set('url_https', 'https://example.com/matomo/');
+    $config->save();
+
+    $this->backdropGet('user/password', array('query' => array('name' => 'foo')));
+    $this->assertRaw('_paq.push(["setCustomUrl", ' . backdrop_json_encode(url('user/password')) . ']);');
+
+    $this->backdropGet('user/password', array('query' => array('name' => 'foo@example.com')));
+    $this->assertRaw('_paq.push(["setCustomUrl", ' . backdrop_json_encode(url('user/password')) . ']);');
+
+    $this->backdropGet('user/password');
+    $this->assertNoRaw('_paq.push(["setCustomUrl", "', '[testMatomoCustomUrls]: Custom url not set.');
+  }
+
+}
+

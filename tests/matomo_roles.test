@@ -1,0 +1,108 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * Test tracking by role.
+ */
+class MatomoRolesTest extends BackdropWebTestCase {
+
+  protected $profile = 'testing';
+
+  /**
+   * @var User
+   */
+  protected $admin_user;
+
+  protected function setUp() {
+    parent::setUp('matomo');
+
+    $permissions = array(
+      'access administration pages',
+      'administer matomo',
+    );
+
+    // User to set up matomo.
+    $this->admin_user = $this->backdropCreateUser($permissions);
+    return TRUE;
+  }
+
+  protected function testMatomoRolesTracking() {
+    $ua_code = '1';
+    $config = config('matomo.settings');
+    $config->set('site_id', $ua_code);
+    $config->set('url_http', 'http://example.com/matomo/');
+    $config->set('url_https', 'https://example.com/matomo/');
+
+    // Test if the default settings are working as expected.
+
+    // Add to the selected roles only.
+    $config->set('visibility_roles', 0);
+    // Enable tracking for all users.
+    $config->set('roles', array());
+    $config->save();
+
+    // Check tracking code visibility.
+    $this->backdropGet('');
+    $this->assertRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for anonymous users on frontpage with default settings.');
+    $this->backdropGet('admin');
+    $this->assertRaw('"403/URL = "', '[testMatomoRoleVisibility]: 403 Forbidden tracking code is displayed for anonymous users in admin section with default settings.');
+
+    $this->backdropLogin($this->admin_user);
+
+    $this->backdropGet('');
+    $this->assertRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for authenticated users on frontpage with default settings.');
+    $this->backdropGet('admin');
+    $this->assertNoRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed for authenticated users in admin section with default settings.');
+
+    // Test if the non-default settings are working as expected.
+
+    // Enable tracking only for authenticated users.
+    $config->set('roles', array(BACKDROP_AUTHENTICATED_ROLE => BACKDROP_AUTHENTICATED_ROLE));
+    $config->save();
+    cache_flush('page');
+
+    $this->backdropGet('');
+    $this->assertRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is displayed for authenticated users only on frontpage.');
+
+    $this->backdropLogout();
+    $this->backdropGet('');
+    $this->assertNoRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed for anonymous users on frontpage.');
+
+    // Add to every role except the selected ones.
+    $config->set('visibility_roles', 1);
+    // Enable tracking for all users.
+    $config->set('roles', array());
+    $config->save();
+    cache_flush('page');
+
+    // Check tracking code visibility.
+    $this->backdropGet('');
+    $this->assertRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is added to every role and displayed for anonymous users.');
+    $this->backdropGet('admin');
+    $this->assertRaw('"403/URL = "', '[testMatomoRoleVisibility]: 403 Forbidden tracking code is shown for anonymous users if every role except the selected ones is selected.');
+
+    $this->backdropLogin($this->admin_user);
+
+    $this->backdropGet('');
+    $this->assertRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is added to every role and displayed on frontpage for authenticated users.');
+    $this->backdropGet('admin');
+    $this->assertNoRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is added to every role and NOT displayed in admin section for authenticated users.');
+
+    // Disable tracking for authenticated users.
+    $config->set('roles', array(BACKDROP_AUTHENTICATED_ROLE => BACKDROP_AUTHENTICATED_ROLE));
+    $config->save();
+    cache_flush('page');
+
+    $this->backdropGet('');
+    $this->assertNoRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed on frontpage for excluded authenticated users.');
+    $this->backdropGet('admin');
+    $this->assertNoRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is NOT displayed in admin section for excluded authenticated users.');
+
+    $this->backdropLogout();
+    $this->backdropGet('');
+    $this->assertRaw('u+"matomo.php"', '[testMatomoRoleVisibility]: Tracking code is displayed on frontpage for included anonymous users.');
+  }
+
+}
