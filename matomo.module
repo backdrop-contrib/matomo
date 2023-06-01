@@ -180,7 +180,11 @@ function matomo_preprocess_page(&$variables) {
       if ($node && translation_supported_type($node->type) && !empty($node->tnid) && ($node->tnid != $node->nid)) {
         $source_node = node_load($node->tnid);
         $languages = language_list();
-        $set_custom_url = backdrop_json_encode(url('node/' . $source_node->nid, array('language' => $languages[$source_node->language], 'absolute' => TRUE)));
+        $url = url('node/' . $source_node->nid, array(
+          'language' => $languages[$source_node->langcode],
+          'absolute' => TRUE,
+        ));
+        $set_custom_url = backdrop_json_encode($url);
       }
     }
 
@@ -468,8 +472,8 @@ function matomo_user_presave($account) {
 function matomo_cron() {
   $config = config('matomo.settings');
   // Regenerate the matomo.js every day.
-  if (REQUEST_TIME - $config->get('last_cache') >= 86400 && $config->get('cache', 0)) {
-    _matomo_cache($config->get('url_http', '') . 'matomo.js', TRUE);
+  if (REQUEST_TIME - $config->get('last_cache') >= 86400 && $config->get('cache')) {
+    _matomo_cache($config->get('url_http') . 'matomo.js', TRUE);
     $config->set('last_cache', REQUEST_TIME);
     $config->save();
   }
@@ -498,9 +502,9 @@ function matomo_preprocess_search_results(&$variables) {
 /**
  * Download/Synchronize/Cache tracking code file locally.
  *
- * @param $location
+ * @param string $location
  *   The full URL to the external javascript file.
- * @param $sync_cached_file
+ * @param bool $sync_cached_file
  *   Synchronize tracking code and update if remote file have changed.
  * @return mixed
  *   The path to the local javascript file on success, boolean FALSE on failure.
@@ -591,9 +595,9 @@ function matomo_search_get_keys() {
 /**
  * Tracking visibility check for an user object.
  *
- * @param $account
+ * @param User|AnonymousUser $account
  *   A user object containing an array of roles to check.
- * @return boolean
+ * @return bool
  *   A decision on if the current user is being tracked by Matomo.
  */
 function _matomo_visibility_user($account) {
@@ -624,6 +628,9 @@ function _matomo_visibility_user($account) {
 /**
  * Based on visibility setting this function returns TRUE if GA code should
  * be added for the current role and otherwise FALSE.
+ *
+ * @param User|AnonymousUser $account
+ * @return bool
  */
 function _matomo_visibility_roles($account) {
 
@@ -653,6 +660,8 @@ function _matomo_visibility_roles($account) {
 /**
  * Based on visibility setting this function returns TRUE if GA code should
  * be added to the current page and otherwise FALSE.
+ *
+ * @return bool
  */
 function _matomo_visibility_pages() {
   static $page_match;
@@ -681,9 +690,6 @@ function _matomo_visibility_pages() {
         // is displayed only on those pages listed in $pages.
         $page_match = !($visibility xor $page_match);
       }
-      elseif (module_exists('php')) {
-        $page_match = php_eval($setting_pages);
-      }
       else {
         $page_match = FALSE;
       }
@@ -701,7 +707,7 @@ function _matomo_visibility_pages() {
  *
  * Based on menu_get_active_breadcrumb().
  *
- * @return array
+ * @return array<string>
  *   All page titles, including current page.
  */
 function _matomo_get_hierarchy_titles() {
