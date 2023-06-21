@@ -90,52 +90,36 @@ function matomo_admin_settings_form($form_state) {
   );
 
   // Page specific visibility configurations.
-  $php_access = user_access('use php for matomo tracking visibility');
-  $visibility = $config->get('visibility_pages');
-  $pages = $config->get('pages');
-
   $form['tracking']['page_vis_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Pages'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
+  $options = array(
+    t('Every page except the listed pages'),
+    t('The listed pages only')
+  );
+  $description = t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array(
+    '%blog' => 'blog',
+    '%blog-wildcard' => 'blog/*',
+    '%front' => '<front>',
+  ));
 
-  if ($visibility == 2 && !$php_access) {
-    $form['tracking']['page_vis_settings'] = array();
-    $form['tracking']['page_vis_settings']['visibility_pages'] = array('#type' => 'value', '#value' => 2);
-    $form['tracking']['page_vis_settings']['pages'] = array('#type' => 'value', '#value' => $pages);
-  }
-  else {
-    $options = array(
-      t('Every page except the listed pages'),
-      t('The listed pages only')
-    );
-    $description = t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>'));
-
-    if (module_exists('php') && $php_access) {
-      $options[] = t('Pages on which this PHP code returns <code>TRUE</code> (experts only)');
-      $title = t('Pages or PHP code');
-      $description .= ' ' . t('If the PHP option is chosen, enter PHP code between %php. Note that executing incorrect PHP code can break your Backdrop site.', array('%php' => '<?php ?>'));
-    }
-    else {
-      $title = t('Pages');
-    }
-    $form['tracking']['page_vis_settings']['visibility_pages'] = array(
-      '#type' => 'radios',
-      '#title' => t('Add tracking to specific pages'),
-      '#options' => $options,
-      '#default_value' => $visibility,
-    );
-    $form['tracking']['page_vis_settings']['pages'] = array(
-      '#type' => 'textarea',
-      '#title' => $title,
-      '#title_display' => 'invisible',
-      '#default_value' => $pages,
-      '#description' => $description,
-      '#rows' => 10,
-    );
-  }
+  $form['tracking']['page_vis_settings']['visibility_pages'] = array(
+    '#type' => 'radios',
+    '#title' => t('Add tracking to specific pages'),
+    '#options' => $options,
+    '#default_value' => $config->get('visibility_pages'),
+  );
+  $form['tracking']['page_vis_settings']['pages'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Pages'),
+    '#title_display' => 'invisible',
+    '#default_value' => $config->get('pages'),
+    '#description' => $description,
+    '#rows' => 10,
+  );
 
   // Render the role overview.
   $form['tracking']['role_vis_settings'] = array(
@@ -338,9 +322,8 @@ function matomo_admin_settings_form($form_state) {
       '#element_validate' => array('token_element_validate'),
       '#token_types' => array('node'),
     );
-    if (module_exists('token')) {
-      $form['custom_var']['slots'][$i]['value']['#element_validate'][] = 'token_element_validate';
-    }
+    $form['custom_var']['slots'][$i]['value']['#element_validate'][] = 'token_element_validate';
+
     $form['custom_var']['slots'][$i]['scope'] = array(
       '#default_value' => !empty($matomo_custom_vars['slots'][$i]['scope']) ? $matomo_custom_vars['slots'][$i]['scope'] : 'visit',
       '#description' => t('The scope for the custom variable.'),

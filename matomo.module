@@ -45,11 +45,6 @@ function matomo_permission() {
       'title' => t('Opt-in or out of tracking'),
       'description' => t('Allow users to decide if tracking code will be added to pages or not.'),
     ),
-    'use php for matomo tracking visibility' => array(
-      'title' => t('Use PHP for tracking visibility'),
-      'description' => t('Enter PHP code in the field for tracking visibility settings.'),
-      'restrict access' => TRUE,
-    ),
     'add js snippets for matomo' => array(
       'title' => t('Add JavaScript snippets'),
       'description' => 'Enter JavaScript code snippets for advanced Matomo functionality.',
