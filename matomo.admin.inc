@@ -470,10 +470,6 @@ function matomo_admin_settings_form_validate($form, &$form_state) {
   $form_state['values']['codesnippet_before'] = trim($form_state['values']['codesnippet_before']);
   $form_state['values']['codesnippet_after'] = trim($form_state['values']['codesnippet_after']);
 
-  if (!preg_match('/^\d{1,}$/', $form_state['values']['site_id'])) {
-    form_set_error('site_id', t('A valid Matomo site ID is an integer only.'));
-  }
-
   $matomo_url = $form_state['values']['url_http'];
   if ('/' != backdrop_substr($matomo_url, -1, 1)) {
     $matomo_url = $matomo_url . '/';

@@ -44,11 +44,6 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->backdropGet('admin/config/system/matomo');
     $this->assertRaw(t('Matomo site ID'), '[testMatomoConfiguration]: Settings page displayed.');
 
-    // Check for account code validation.
-    $edit['site_id'] = $this->randomName(2);
-    $this->backdropPost('admin/config/system/matomo', $edit, 'Save configuration');
-    $this->assertRaw(t('A valid Matomo site ID is an integer only.'), '[testMatomoConfiguration]: Invalid Matomo site ID number validated.');
-
     // User should have access to code snippets.
     $this->assertFieldByName('codesnippet_before');
     $this->assertFieldByName('codesnippet_after');
