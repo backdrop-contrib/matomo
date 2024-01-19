@@ -110,3 +110,15 @@ function matomo_update_1001() {
     $config->save();
   }
 }
+
+/**
+ * Change last_cache setting to state.
+ */
+function matomo_update_1002() {
+  $config = config('matomo.settings');
+  $last_cache = $config->get('last_cache');
+  $config->clear('last_cache');
+  $config->save();
+
+  state_set('matomo_last_cache', $last_cache);
+}
