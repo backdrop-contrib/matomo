@@ -561,23 +561,22 @@ function matomo_token_element_validate(&$element, &$form_state) {
 }
 
 /**
- * @param array $value
- *   An array of token values.
+ * @param array $values
+ *   An array of token values as provided by token_scan().
  *
  * @return array
  *   A unique array of invalid tokens.
  */
-function _matomo_get_forbidden_tokens($value) {
+function _matomo_get_forbidden_tokens($values) {
   $invalid_tokens = array();
-  $value_tokens = is_string($value) ? token_scan($value) : $value;
 
-  foreach ($value_tokens as $type => $tokens) {
-    if (array_filter($tokens, '_contains_forbidden_token')) {
+  foreach ($values as $type => $tokens) {
+    if (array_filter($tokens, '_matomo_contains_forbidden_token')) {
       $invalid_tokens = array_merge($invalid_tokens, array_values($tokens));
     }
   }
 
-  array_unique($invalid_tokens);
+  $invalid_tokens = array_unique($invalid_tokens);
   return $invalid_tokens;
 }
 
@@ -611,7 +610,9 @@ function _matomo_contains_forbidden_token($token_string) {
     ':current-user:original]',
     ':fid]',
     ':mail]',
-    ':name]',
+    'user:name]',
+    'author:name]',
+    'owner:name]',
     ':uid]',
     ':one-time-login-url]',
     ':owner]',
