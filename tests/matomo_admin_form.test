@@ -1,0 +1,85 @@
+<?php
+/**
+ * @file
+ * Test file for Matomo module.
+ */
+
+/**
+ * Test tokens and privacy related blocklist validation.
+ */
+class MatomoAdminFormTokenTest extends BackdropWebTestCase {
+
+  protected $profile = 'testing';
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp(array('matomo'));
+
+    // Basic setup for the "testing" profile.
+    config_set('system.core', 'site_frontpage', 'node');
+    user_role_grant_permissions(BACKDROP_ANONYMOUS_ROLE, array('access content'));
+    user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array('access content'));
+
+    $permissions = array(
+      'access administration pages',
+      'administer matomo',
+    );
+
+    $admin_user = $this->backdropCreateUser($permissions);
+    $this->backdropLogin($admin_user);
+    return TRUE;
+  }
+
+  /**
+   * Test admin form validation with tokens in custom variables.
+   */
+  protected function testMatomoAdminFormTokenValidation() {
+    $config = config('matomo.settings');
+    $config->set('site_id', '5');
+    $config->set('url_http', 'http://example.com');
+    $config->set('url_https', 'https://example.com');
+    $config->save();
+    $this->backdropGet('admin/config/system/matomo');
+
+    // @see matomo_token_element_validate().
+    $message_string = 'The %element-title is using the following forbidden tokens with personal identifying information: @invalid-tokens.';
+
+    // A user's name.
+    $edit = array(
+      'custom_var[slots][1][name]' => 'username',
+      'custom_var[slots][1][value]' => '[current-user:name]',
+    );
+    $this->backdropPost(NULL, $edit, t('Save configuration'));
+    $this->assertRaw(format_string($message_string, array(
+      '%element-title' => 'Custom variable value #1',
+      '@invalid-tokens' => '[current-user:name]',
+    )), 'Token [current-user:name] caused form validation error.');
+
+    // A user's IP.
+    $edit = array(
+      'custom_var[slots][1][name]' => 'user_ip',
+      'custom_var[slots][1][value]' => '[current-user:ip-address]',
+    );
+    $this->backdropPost(NULL, $edit, t('Save configuration'));
+    $this->assertRaw(format_string($message_string, array(
+      '%element-title' => 'Custom variable value #1',
+      '@invalid-tokens' => '[current-user:ip-address]',
+    )), 'Token [current-user:ip-address] caused form validation error.');
+
+    // Site slogan is fine.
+    $edit = array(
+      'custom_var[slots][1][name]' => 'siteslogan',
+      'custom_var[slots][1][value]' => '[site:slogan]',
+    );
+    $this->backdropPost(NULL, $edit, t('Save configuration'));
+    // Note that because of domain "example.com" we can not check for form
+    // success message, as this form will always fail unrelated to tokens.
+    $this->assertNoRaw(format_string($message_string, array(
+      '%element-title' => 'Custom variable value #1',
+      '@invalid-tokens' => '[site:slogan]',
+    )), 'Token [site:slogan] did not cause validation error.');
+  }
+
+}

@@ -27,3 +27,9 @@ name = Matomo role tests
 description = Tests to verify that the tracking code respects tracking per role.
 group = Matomo Analytics
 file = matomo_roles.test
+
+[MatomoAdminFormTokenTest]
+name = Matomo admin form token tests
+description = Tests for token and privacy.
+group = Matomo Analytics
+file = matomo_admin_form.test
