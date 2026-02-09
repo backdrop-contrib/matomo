@@ -10,6 +10,9 @@ class MatomoCustomUrls extends BackdropWebTestCase {
 
   protected $profile = 'testing';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp('matomo');
     return TRUE;

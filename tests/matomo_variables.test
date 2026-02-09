@@ -10,11 +10,17 @@ class MatomoCustomVariablesTest extends BackdropWebTestCase {
 
   protected $profile = 'testing';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp('matomo');
     return TRUE;
   }
 
+  /**
+   * Test custom variables.
+   */
   protected function testMatomoCustomVariables() {
     $ua_code = '3';
     $config = config('matomo.settings');

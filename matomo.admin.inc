@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Administrative page callbacks for the matomo module.
@@ -98,7 +97,7 @@ function matomo_admin_settings_form($form_state) {
   );
   $options = array(
     t('Every page except the listed pages'),
-    t('The listed pages only')
+    t('The listed pages only'),
   );
   $description = t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array(
     '%blog' => 'blog',
@@ -157,7 +156,7 @@ function matomo_admin_settings_form($form_state) {
     '#options' => array(
       0 => t('No customization allowed'),
       1 => t('Tracking on by default, users with %permission permission can opt out', $t_permission),
-      2 => t('Tracking off by default, users with %permission permission can opt in', $t_permission)
+      2 => t('Tracking off by default, users with %permission permission can opt in', $t_permission),
     ),
     '#default_value' => $config->get('custom'),
   );
@@ -194,7 +193,7 @@ function matomo_admin_settings_form($form_state) {
       'enabled' => array(
         ':input[name="track"]' => array('checked' => TRUE),
       ),
-      # Note: Form required marker is not visible as title is invisible.
+      // Note: Form required marker is not visible as title is invisible.
       'required' => array(
         ':input[name="track"]' => array('checked' => TRUE),
       ),
@@ -319,7 +318,10 @@ function matomo_admin_settings_form($form_state) {
       '#title' => t('Custom variable value #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
       '#type' => 'textfield',
-      '#element_validate' => array('token_element_validate', 'matomo_token_element_validate'),
+      '#element_validate' => array(
+        'token_element_validate',
+        'matomo_token_element_validate',
+      ),
       '#token_types' => array('node'),
     );
 
@@ -386,7 +388,9 @@ function matomo_admin_settings_form($form_state) {
     '#title' => t('Custom JavaScript code'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#description' => t('You can add custom Matomo <a href="@snippets">code snippets</a> here. These will be added to every page that Matomo appears on. <strong>Do not include the &lt;script&gt; tags</strong>, and always end your code with a semicolon (;).', array('@snippets' => 'https://matomo.org/docs/javascript-tracking/'))
+    '#description' => t('You can add custom Matomo <a href="@snippets">code snippets</a> here. These will be added to every page that Matomo appears on. <strong>Do not include the &lt;script&gt; tags</strong>, and always end your code with a semicolon (;).', array(
+      '@snippets' => 'https://matomo.org/docs/javascript-tracking/',
+    )),
   );
   $form['advanced']['codesnippet']['codesnippet_before'] = array(
     '#type' => 'textarea',
@@ -394,7 +398,7 @@ function matomo_admin_settings_form($form_state) {
     '#default_value' => $config->get('codesnippet_before'),
     '#disabled' => $user_access_add_js_snippets,
     '#rows' => 5,
-    '#description' => t('Code in this textarea will be added <strong>before</strong> _paq.push(["trackPageView"]).')
+    '#description' => t('Code in this textarea will be added <strong>before</strong> _paq.push(["trackPageView"]).'),
   );
   $form['advanced']['codesnippet']['codesnippet_after'] = array(
     '#type' => 'textarea',
@@ -402,7 +406,7 @@ function matomo_admin_settings_form($form_state) {
     '#default_value' => $config->get('codesnippet_after'),
     '#disabled' => $user_access_add_js_snippets,
     '#rows' => 5,
-    '#description' => t('Code in this textarea will be added <strong>after</strong> _paq.push(["trackPageView"]). This is useful if you\'d like to track a site in two accounts.')
+    '#description' => t('Code in this textarea will be added <strong>after</strong> _paq.push(["trackPageView"]). This is useful if you\'d like to track a site in two accounts.'),
   );
 
   $form['advanced']['js_scope'] = array(
@@ -431,6 +435,9 @@ function _matomo_admin_flush_cache() {
   cache_flush('page');
 }
 
+/**
+ * Element validation callback.
+ */
 function matomo_admin_settings_form_validate($form, &$form_state) {
   // Custom variables validation.
   foreach ($form_state['values']['custom_var']['slots'] as $custom_var) {
@@ -460,7 +467,11 @@ function matomo_admin_settings_form_validate($form, &$form_state) {
   $url = $matomo_url . 'matomo.php';
   $result = backdrop_http_request($url);
   if ($result->code != 200 && $form_state['values']['url_skiperror'] == FALSE) {
-    form_set_error('url_http', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
+    form_set_error('url_http', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array(
+      '@url' => check_url($url),
+      '@error' => $result->error,
+      '@code' => $result->code,
+    )));
   }
 
   if (!empty($form_state['values']['url_https'])) {
@@ -472,7 +483,11 @@ function matomo_admin_settings_form_validate($form, &$form_state) {
     $url = $matomo_url . 'matomo.php';
     $result = backdrop_http_request($url);
     if ($result->code != 200 && $form_state['values']['url_skiperror'] == FALSE) {
-      form_set_error('url_https', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array('@url' => check_url($url), '@error' => $result->error, '@code' => $result->code)));
+      form_set_error('url_https', t('The validation of "@url" failed with error "@error" (HTTP code @code).', array(
+        '@url' => check_url($url),
+        '@error' => $result->error,
+        '@code' => $result->code,
+      )));
     }
   }
 
@@ -499,7 +514,7 @@ function matomo_admin_settings_form_validate($form, &$form_state) {
  * @return string
  *   The rendered output.
  */
-function theme_matomo_admin_custom_var_table($variables) {
+function theme_matomo_admin_custom_var_table(array $variables) {
   $form = $variables['form'];
 
   $header = array(
@@ -553,7 +568,10 @@ function matomo_token_element_validate(&$element, &$form_state) {
   $tokens = token_scan($value);
   $invalid_tokens = _matomo_get_forbidden_tokens($tokens);
   if ($invalid_tokens) {
-    form_error($element, t('The %element-title is using the following forbidden tokens with personal identifying information: @invalid-tokens.', array('%element-title' => $element['#title'], '@invalid-tokens' => implode(', ', $invalid_tokens))));
+    form_error($element, t('The %element-title is using the following forbidden tokens with personal identifying information: @invalid-tokens.', array(
+      '%element-title' => $element['#title'],
+      '@invalid-tokens' => implode(', ', $invalid_tokens),
+    )));
   }
 
   return $element;
@@ -566,7 +584,7 @@ function matomo_token_element_validate(&$element, &$form_state) {
  * @return array
  *   A unique array of invalid tokens.
  */
-function _matomo_get_forbidden_tokens($values) {
+function _matomo_get_forbidden_tokens(array $values) {
   $invalid_tokens = array();
 
   foreach ($values as $type => $tokens) {
@@ -624,16 +642,16 @@ function _matomo_contains_forbidden_token($token_string) {
     'user:url]',
     'user:path]',
     'user:picture]',
-    // addressfield_tokens.module
+    // Addressfield module tokens.
     ':first-name]',
     ':last-name]',
     ':name-line]',
     ':mc-address]',
     ':thoroughfare]',
     ':premise]',
-    // realname.module
+    // Realname module tokens.
     ':name-raw]',
-    // token.module
+    // Note that core's IP value's already covered by "current-user".
     ':ip-address]',
   );
 

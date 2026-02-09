@@ -15,6 +15,9 @@ class MatomoRolesTest extends BackdropWebTestCase {
    */
   protected $admin_user;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp('matomo');
 
@@ -28,6 +31,9 @@ class MatomoRolesTest extends BackdropWebTestCase {
     return TRUE;
   }
 
+  /**
+   * Test roles tracking.
+   */
   protected function testMatomoRolesTracking() {
     $ua_code = '1';
     $config = config('matomo.settings');

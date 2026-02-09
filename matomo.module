@@ -1,8 +1,7 @@
 <?php
-
 /**
  * @file
- * Drupal Module: Matomo
+ * Backdrop Module: Matomo
  *
  * Adds the required Javascript to all your Drupal pages to allow tracking by
  * the Matomo statistics package.
@@ -124,9 +123,10 @@ function matomo_preprocess_page(&$variables) {
     backdrop_add_js(array('matomo' => $link_settings), 'setting');
     backdrop_add_js(backdrop_get_path('module', 'matomo') . '/matomo.js');
 
-    // Matomo can show a tree view of page titles that represents the site structure
-    // if setDocumentTitle() provides the page titles as a "/" delimited list.
-    // This may makes it easier to browse through the statistics of page titles
+    // Matomo can show a tree view of page titles that represents the site
+    // structure if setDocumentTitle() provides the page titles as a "/"
+    // delimited list.
+    // This may make it easier to browse through the statistics of page titles
     // on larger sites.
     if ($config->get('page_title_hierarchy') == TRUE) {
       $titles = _matomo_get_hierarchy_titles();
@@ -244,7 +244,8 @@ function matomo_preprocess_page(&$variables) {
     $codesnippet_before = $config->get('codesnippet_before');
     $codesnippet_after = $config->get('codesnippet_after');
 
-    // Build tracker code. See https://matomo.org/docs/javascript-tracking/#toc-asynchronous-tracking
+    // Build tracker code.
+    // @see https://matomo.org/docs/javascript-tracking/#toc-asynchronous-tracking
     $script = 'var _paq = _paq || [];';
     $script .= '(function(){';
     $script .= 'var u=(("https:" == document.location.protocol) ? "' . check_url($url_https) . '" : "' . check_url($url_http) . '");';
@@ -273,7 +274,8 @@ function matomo_preprocess_page(&$variables) {
       $script .= '_paq.push(["setDownloadExtensions", ' . backdrop_json_encode($config->get('trackfiles_extensions')) . ']);';
     }
 
-    // Disable tracking for visitors who have opted out from tracking via DNT (Do-Not-Track) header.
+    // Disable tracking for visitors who have opted out from tracking via DNT
+    // (Do-Not-Track) header.
     if ($config->get('privacy_donottrack')) {
       $script .= '_paq.push(["setDoNotTrack", 1]);';
     }
@@ -283,13 +285,15 @@ function matomo_preprocess_page(&$variables) {
     $domain_mode = $config->get('domain_mode');
 
     // Per RFC 2109, cookie domains must contain at least one dot other than the
-    // first. For hosts such as 'localhost' or IP Addresses we don't set a cookie domain.
+    // first. For hosts such as 'localhost' or IP Addresses we don't set a
+    // cookie domain.
     if ($domain_mode == 1 && count(explode('.', $cookie_domain)) > 2 && !is_numeric(str_replace('.', '', $cookie_domain))) {
       $script .= '_paq.push(["setCookieDomain", ' . backdrop_json_encode($cookie_domain) . ']);';
     }
 
     // Ordering $custom_variable before $codesnippet_before allows users to add
-    // custom code snippets that may use deleteCustomVariable() and/or getCustomVariable().
+    // custom code snippets that may use deleteCustomVariable() and/or
+    // getCustomVariable().
     if (!empty($custom_variable)) {
       $script .= $custom_variable;
     }
@@ -298,7 +302,8 @@ function matomo_preprocess_page(&$variables) {
     }
 
     // Site search tracking support.
-    // NOTE: It's recommended not to call trackPageView() on the Site Search Result page.
+    // NOTE: It's recommended not to call trackPageView() on the Site Search
+    // Result page.
     if (module_exists('search') && $config->get('site_search') && arg(0) == 'search' && $keys = matomo_search_get_keys()) {
       // Parameters:
       // 1. Search keyword searched for. Example: "Banana"
@@ -406,7 +411,7 @@ function matomo_field_extra_fields() {
 }
 
 /**
- * Implement hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter().
  *
  * Allow users to decide if tracking code will be added to pages or not.
  */
@@ -419,7 +424,7 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
       '#title' => t('Matomo configuration'),
       '#weight' => 3,
       '#collapsible' => TRUE,
-      '#tree' => TRUE
+      '#tree' => TRUE,
     );
 
     switch ($custom) {
@@ -498,7 +503,11 @@ function matomo_preprocess_search_results(&$variables) {
     $num_results = 0;
   }
 
-  backdrop_add_js('window.matomo_search_results = ' . $num_results . ';', array('type' => 'inline', 'group' => JS_LIBRARY-1));
+  backdrop_add_js('window.matomo_search_results = ' . $num_results . ';', array(
+    'type' => 'inline',
+    'group' => JS_LIBRARY,
+    'weight' => -1,
+  ));
 }
 
 /**
@@ -534,7 +543,8 @@ function _matomo_cache($location, $sync_cached_file = FALSE) {
           }
           watchdog('matomo', 'Locally cached tracking code file has been updated.', array(), WATCHDOG_INFO);
 
-          // Change query-strings on css/js files to enforce reload for all users.
+          // Change query-strings on css/js files to enforce reload for all
+          // users.
           _backdrop_flush_css_js();
         }
       }
@@ -544,7 +554,7 @@ function _matomo_cache($location, $sync_cached_file = FALSE) {
           // There is no need to flush JS here as core refreshes JS caches
           // automatically, if new files are added.
           file_unmanaged_save_data($result->data, $file_destination, FILE_EXISTS_REPLACE);
-          if (config_get('system.core', 'preprocess_css') && config_get('system.core', 'clean_url')   && extension_loaded('zlib')) {
+          if (config_get('system.core', 'preprocess_css') && config_get('system.core', 'clean_url') && extension_loaded('zlib')) {
             file_unmanaged_save_data(gzencode($result->data, 9, FORCE_GZIP), $file_destination . '.gz', FILE_EXISTS_REPLACE);
           }
           watchdog('matomo', 'Locally cached tracking code file has been saved.', array(), WATCHDOG_INFO);
@@ -632,6 +642,8 @@ function _matomo_visibility_user($account) {
  * be added for the current role and otherwise FALSE.
  *
  * @param User|AnonymousUser $account
+ *   The Backdrop user object.
+ *
  * @return bool
  */
 function _matomo_visibility_roles($account) {
@@ -645,7 +657,8 @@ function _matomo_visibility_roles($account) {
     foreach ($account->roles as $role) {
       // Is the current user a member of one of these roles?
       if (isset($roles[$role]) && $role == $roles[$role]) {
-        // Current user is a member of a role that should be tracked/excluded from tracking.
+        // Current user is a member of a role that should be tracked/excluded
+        // from tracking.
         $enabled = !$visibility;
         break;
       }
@@ -680,7 +693,7 @@ function _matomo_visibility_pages() {
       // with different case. Ex: /Page, /page, /PAGE.
       $pages = backdrop_strtolower($setting_pages);
       if ($visibility < 2) {
-        // Convert the Drupal path to lowercase
+        // Convert the Backdrop path to lowercase.
         $path = backdrop_strtolower(backdrop_get_path_alias($_GET['q']));
         // Compare the lowercase internal and lowercase path alias (if any).
         $page_match = backdrop_match_path($path, $pages);
