@@ -1,0 +1,53 @@
+name: Code Checks
+on: [pull_request]
+jobs:
+  codechecks:
+    name: PHPStan and phpcs
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - name: Setup env
+        run: |
+          echo "REPO_NAME=${PWD##*/}" >> $GITHUB_ENV
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          # No composer nor xdebug, but we need our commandline tools.
+          tools: none, phpstan, phpcs
+          coverage: none
+
+      # The checkout action refuses to put it outside, so we have to do it in
+      # two steps.
+      - name: Checkout coding standard
+        uses: actions/checkout@v4
+        with:
+          repository: backdrop-ops/phpcs
+          ref: 1.2.0
+          path: phpcs
+      - name: Move standard outside current dir
+        run: mv phpcs ..
+
+      # Core code is necessary for phpstan.
+      - name: Checkout Backdrop core
+        uses: actions/checkout@v4
+        with:
+          repository: backdrop/backdrop
+
+      - name: Checkout module
+        uses: actions/checkout@v4
+        with:
+          path: modules/${{ env.REPO_NAME }}
+
+      - name: Run PHPStan
+        run: |
+          cd modules/${{ env.REPO_NAME }}
+          phpstan analyze -c .github/phpstan/phpstan.neon --error-format=github --no-progress .
+
+      # We run phpcs even if phpstan fails.
+      - name: Run CodeSniffer
+        if: ${{ always() }}
+        run: |
+          cd modules/${{ env.REPO_NAME }}
+          phpcs --standard=../../../phpcs/Backdrop --report=../../../phpcs/Backdrop/Reports/Github.php -n --basepath=. *
