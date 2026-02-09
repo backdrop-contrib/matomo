@@ -319,10 +319,9 @@ function matomo_admin_settings_form($form_state) {
       '#title' => t('Custom variable value #@slot', array('@slot' => $i)),
       '#title_display' => 'invisible',
       '#type' => 'textfield',
-      '#element_validate' => array('token_element_validate'),
+      '#element_validate' => array('token_element_validate', 'matomo_token_element_validate'),
       '#token_types' => array('node'),
     );
-    $form['custom_var']['slots'][$i]['value']['#element_validate'][] = 'token_element_validate';
 
     $form['custom_var']['slots'][$i]['scope'] = array(
       '#default_value' => !empty($matomo_custom_vars['slots'][$i]['scope']) ? $matomo_custom_vars['slots'][$i]['scope'] : 'visit',
