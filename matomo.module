@@ -389,7 +389,7 @@ function matomo_preprocess_page(&$variables) {
  *   User id hash.
  */
 function matomo_user_id_hash($uid) {
-  return backdrop_hmac_base64($uid, backdrop_get_private_key() . backdrop_get_hash_salt());
+  return backdrop_hmac_base64((string) $uid, backdrop_get_private_key() . backdrop_get_hash_salt());
 }
 
 /**
@@ -430,6 +430,9 @@ function matomo_form_user_profile_form_alter(&$form, &$form_state) {
       case 2:
         $description = t('Users are <em>not</em> tracked by default, but you are able to opt in.');
         break;
+
+      default:
+        $description = '';
     }
 
     // Migrate old piwik settings to matomo.
