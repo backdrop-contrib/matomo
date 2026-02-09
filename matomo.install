@@ -11,11 +11,6 @@ function matomo_install() {
   backdrop_set_message(t('Module %module granted %permission permission to authenticated users.', array('%module' => 'Matomo Analytics', '%permission' => t('Opt-in or out of tracking'))), 'status');
 }
 
-function matomo_uninstall() {
-  $config = config('matomo.settings');
-  $config->delete();
-}
-
 /**
  * Remove cache directory if module is disabled (or uninstalled).
  */
