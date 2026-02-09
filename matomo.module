@@ -506,7 +506,7 @@ function matomo_preprocess_search_results(&$variables) {
   backdrop_add_js('window.matomo_search_results = ' . $num_results . ';', array(
     'type' => 'inline',
     'group' => JS_LIBRARY,
-    'weight' => -1,
+    'weight' => -20,
   ));
 }
 
