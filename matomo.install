@@ -32,16 +32,6 @@ function matomo_requirements($phase) {
 
   switch ($phase) {
     case 'runtime':
-      // Module cannot validate matomo URL without external HTTP requests.
-      if (!_matomo_check_http_request()) {
-        $requirements['matomo_http_requests'] = array(
-          'title' => $t('HTTP request status'),
-          'value' => $t('Fails'),
-          'severity' => REQUIREMENT_ERROR,
-          'description' => $t('Your system or network configuration does not allow Backdrop to access web pages, resulting in reduced functionality. This could be due to your webserver configuration or PHP.'),
-        );
-      }
-
       // Raise warning if Matomo user account has not been set yet.
       if (empty(config_get('matomo.settings', 'site_id'))) {
         $requirements['matomo'] = array(
@@ -50,6 +40,20 @@ function matomo_requirements($phase) {
           'severity' => REQUIREMENT_WARNING,
           'value' => $t('Not configured'),
         );
+      }
+      else {
+        $result = _matomo_check_url_reachable();
+        if (!empty($result['error'])) {
+          $requirements['matomo_reachable'] = array(
+            'title' => $t('Matomo URL reachable'),
+            'description' => $t('The URL %url is configured but calling it fails with error %error.', array(
+              '%url' => $result['url'],
+              '%error' => $result['error'],
+            )),
+            'value' => $t('Fails'),
+            'severity' => REQUIREMENT_WARNING,
+          );
+        }
       }
       break;
   }

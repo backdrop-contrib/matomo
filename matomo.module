@@ -751,21 +751,26 @@ function _matomo_get_hierarchy_titles() {
 }
 
 /**
- * Helper function to verify that Backdrop can make http requests.
+ * Helper function to make sure the request is only done once.
  *
- * @return bool
- *   TRUE if http response was received, FALSE otherwise.
+ * @return array
+ *   Array keyed by "url" and "error".
  */
-function _matomo_check_http_request() {
-  $works = &backdrop_static(__FUNCTION__);
-
-  if (!isset($works)) {
-    // Try to get the content of the front page.
-    $result = backdrop_http_request(url('', array('absolute' => TRUE)), array(
+function _matomo_check_url_reachable() {
+  static $result;
+  if (empty($result)) {
+    $config = config('matomo.settings');
+    // HTTPS preferred.
+    $url = !empty($config->get('url_https')) ? $config->get('url_https') : $config->get('url_http');
+    $response = backdrop_http_request($url, array(
       'max_redirects' => 0,
-      'timeout' => 10,
+      'timeout' => 3,
+      'method' => 'HEAD',
     ));
-    $works = isset($result->code) && ($result->code >= 100) && ($result->code < 600);
+    $result = array(
+      'url' => $url,
+      'error' => isset($response->error) ? $response->error : FALSE ,
+    );
   }
-  return $works;
+  return $result;
 }
