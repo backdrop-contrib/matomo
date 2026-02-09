@@ -1,17 +1,24 @@
 <?php
-
 /**
  * @file
  * Installation file for Matomo Analytics module.
  */
 
+/**
+ * Implements hook_install().
+ */
 function matomo_install() {
   // Make the default install more user and GDPR friendly.
   user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array('opt-in or out of matomo tracking'));
-  backdrop_set_message(t('Module %module granted %permission permission to authenticated users.', array('%module' => 'Matomo Analytics', '%permission' => t('Opt-in or out of tracking'))), 'status');
+  backdrop_set_message(t('Module %module granted %permission permission to authenticated users.', array(
+    '%module' => 'Matomo Analytics',
+    '%permission' => t('Opt-in or out of tracking'),
+  )), 'status');
 }
 
 /**
+ * Implements hook_disable().
+ *
  * Remove cache directory if module is disabled (or uninstalled).
  */
 function matomo_disable() {
@@ -19,7 +26,7 @@ function matomo_disable() {
 }
 
 /**
- * Implementation of hook_requirements().
+ * Implements hook_requirements().
  */
 function matomo_requirements($phase) {
   $requirements = array();

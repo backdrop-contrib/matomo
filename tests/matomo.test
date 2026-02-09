@@ -18,6 +18,9 @@ class MatomoBasicTest extends BackdropWebTestCase {
    */
   protected $noSnippetUser;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp('matomo');
 
@@ -39,6 +42,9 @@ class MatomoBasicTest extends BackdropWebTestCase {
     return TRUE;
   }
 
+  /**
+   * Test configuration.
+   */
   protected function testMatomoConfiguration() {
     // Check for setting page's presence.
     $this->backdropGet('admin/config/system/matomo');
@@ -61,6 +67,9 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertFieldByXPath("//textarea[@name='codesnippet_after' and @disabled='disabled']", NULL, '"Code snippet (after)" is disabled.');
   }
 
+  /**
+   * Test page visibility.
+   */
   protected function testMatomoPageVisibility() {
     $ua_code = '1';
     $config = config('matomo.settings');
@@ -124,6 +133,9 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $this->assertRaw('404/URL = "', '[testMatomoPageVisibility]: 404 Not Found tracking code shown on non-existent page.');
   }
 
+  /**
+   * Test tracking code.
+   */
   protected function testMatomoTrackingCode() {
     $ua_code = '2';
     $config = config('matomo.settings');
@@ -137,6 +149,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
     $config->set('roles', array());
 
     /* Sample JS code as added to page:
+    // phpcs:disable
     <script type="text/javascript">
     var _paq = _paq || [];
     (function(){
@@ -154,6 +167,7 @@ class MatomoBasicTest extends BackdropWebTestCase {
             s.parentNode.insertBefore(g,s);
     })();
     </script>
+    // phpcs:enable
     */
 
     // Test whether tracking code uses latest JS.

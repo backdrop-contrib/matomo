@@ -10,11 +10,17 @@ class MatomoStatusMessagesTest extends BackdropWebTestCase {
 
   protected $profile = 'testing';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp(array('matomo', 'matomo_testing'));
     return TRUE;
   }
 
+  /**
+   * Test for status messages.
+   */
   protected function testMatomoStatusMessages() {
     $config = config('matomo.settings');
     $config->set('site_id', '1');
