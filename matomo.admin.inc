@@ -144,6 +144,61 @@ function matomo_admin_settings_form($form_state) {
     '#description' => t('If none of the roles are selected, all users will be tracked. If a user has any of the roles checked, that user will be tracked (or excluded, depending on the setting above).'),
   );
 
+  // AI bots / crawlers (server-side tracking).
+  $form['tracking']['bot_tracking'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('AI bots & crawlers'),
+  );
+  $form['tracking']['bot_tracking']['bot_tracking'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Track AI assistants and crawlers server-side'),
+    '#description' => t('AI assistants (ChatGPT, Perplexity, Claude, etc.) fetch pages without running JavaScript, so the tracking code above never fires for them. If enabled, matching requests are reported to Matomo using its <a href="@url">Bot Tracking</a> parameters instead. Requires Matomo 5.7.0 or later.', array('@url' => 'https://developer.matomo.org/api-reference/tracking-api#tracking-bots')),
+    '#default_value' => $config->get('bot_tracking'),
+  );
+  $form['tracking']['bot_tracking']['bot_tracking_settings_php_notice'] = array(
+    '#type' => 'item',
+    '#markup' => '<div class="messages warning">' . t('<strong>Required extra step, outside this form:</strong> by default, Backdrop skips hook_boot() (which this feature relies on) for pages served from its internal page cache, so tracking would otherwise only fire on the first request after each cache clear/expiry. Add the following line to this site\'s <code>settings.php</code> &mdash; it cannot be set from within a module: <code>$settings[\'page_cache_invoke_hooks\'] = TRUE;</code>', array()) . '</div>',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="bot_tracking"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  $form['tracking']['bot_tracking']['bot_tracking_patterns'] = array(
+    '#type' => 'textarea',
+    '#title' => t('User-Agent patterns (optional)'),
+    '#default_value' => $config->get('bot_tracking_patterns'),
+    '#description' => t('User-Agent substrings/regular expression fragments, separated by the | character, that identify the AI assistants to track. Leaving this empty disables bot tracking in practice, since no request will ever match. The default value matches the User-Agents Matomo itself currently recognises as live, user-triggered AI chatbot requests (ChatGPT-User, Claude-User, Perplexity-User, MistralAI-User, Gemini-Deep-Research, GoogleAgent, NovaAct); Matomo determines chatbot classification independently on its side, so adding training/indexing crawlers here (GPTBot, ClaudeBot, PerplexityBot, CCBot, etc.) will not make them appear in the AI Chatbots reports, though the requests will still be forwarded.'),
+    '#rows' => 4,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="bot_tracking"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  $form['tracking']['bot_tracking']['bot_tracking_patterns_example'] = array(
+    '#type' => 'item',
+    '#title' => t('Value to copy/paste'),
+    '#markup' => '<code>' . check_plain(MATOMO_BOT_TRACKING_PATTERNS) . '</code>',
+    '#description' => t('The full list currently recognised by Matomo as live, user-triggered AI chatbot requests, ready to paste into the field above.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="bot_tracking"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  $form['tracking']['bot_tracking']['bot_tracking_token_auth'] = array(
+    '#type' => 'textfield',
+    '#title' => t('token_auth (optional)'),
+    '#default_value' => $config->get('bot_tracking_token_auth'),
+    '#size' => 40,
+    '#description' => t('Only needed if you also want the visitor IP address (cip) recorded with bot requests. Use a token belonging to a user with write permission on this website only, never the Super User token.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="bot_tracking"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
   // Standard tracking configurations.
   $form['tracking']['user_vis_settings'] = array(
     '#type' => 'fieldset',

@@ -25,5 +25,8 @@
     "codesnippet_before": "",
     "codesnippet_after": "",
     "js_scope": "header",
-    "pages": "admin\nadmin/*\nbatch\nnode/add*\nnode/*/*\nuser/*/*"
+    "pages": "admin\nadmin/*\nbatch\nnode/add*\nnode/*/*\nuser/*/*",
+    "bot_tracking": 0,
+    "bot_tracking_patterns": "ChatGPT-User|Claude-User|Perplexity-User|MistralAI-User|Gemini-Deep-Research|GoogleAgent|NovaAct",
+    "bot_tracking_token_auth": ""
 }
